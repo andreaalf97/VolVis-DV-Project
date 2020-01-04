@@ -5,10 +5,9 @@
 package tudelft.cgv.volume;
 
 /**
- *
- * @author michel and modified by Anna Vilanova 
- * 
- * 
+ * It stores and provides methods to compute and retrieve gradient vector
+ * In math, gradient vectors are vectors that point to the greatest increase of a function
+ * @author michel and modified by Anna Vilanova
  */
 
 //////////////////////////////////////////////////////////////////////

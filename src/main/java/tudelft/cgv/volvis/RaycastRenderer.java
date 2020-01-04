@@ -20,6 +20,8 @@ import java.awt.Color;
 
 
 /**
+ * Simple rendered that initially generates a view-plane aligned slice through the center of the volume data and a
+ * maximum intensity projection rendering
  *
  * @author michel
  *  Edit by AVilanova & Nicola Pezzotti

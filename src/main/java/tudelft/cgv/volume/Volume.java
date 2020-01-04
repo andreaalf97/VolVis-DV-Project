@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- *
+ * This class stores the volume anc contains functions to retrieve values of the volume.
  * @author michel modified by Anna
  */
 
@@ -76,7 +76,7 @@ public class Volume {
     }
 
 
-    float a = -0.75f; // global variable that defines the value of a used in cubic interpolation.
+    float a = -0.75f; // global variable that defines the value of 'a', used in cubic interpolation.
     // you need to chose the right value
         
     //////////////////////////////////////////////////////////////////////
