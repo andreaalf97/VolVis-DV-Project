@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * This class stores the volume anc contains functions to retrieve values of the volume.
+ *
  * @author michel modified by Anna
  */
 
@@ -76,7 +76,7 @@ public class Volume {
     }
 
 
-    float a = -0.75f; // global variable that defines the value of 'a', used in cubic interpolation.
+    float a = -0.75f; // global variable that defines the value of a used in cubic interpolation.
     // you need to chose the right value
         
     //////////////////////////////////////////////////////////////////////
@@ -87,7 +87,6 @@ public class Volume {
     // Weight(x) is basically h(x)
     public float weight (float x, Boolean one_two_sample)
     {
-
         float abs = Math.abs(x);
 
         if(abs < 1)
@@ -107,14 +106,13 @@ public class Volume {
     // We assume the out of bounce checks have been done earlier
     
     public float cubicinterpolate(float g0, float g1, float g2, float g3, float factor) {
-       
         float result = 0.0f;
 
         result += g0 * weight(1 + factor, false);
         result += g1 * weight(factor, false);
         result += g2 * weight(1 - factor, false);
         result += g3 * weight(2 - factor, false);
-
+      
         return result; 
     }
         
@@ -175,7 +173,7 @@ public class Volume {
                 || coord[2] < 1 || coord[2] > (dimZ-3)) {
             return 0;
         }
-
+      
         //coord is like [x_, y_, z_]
 
         int z = (int)Math.floor(coord[2]);
