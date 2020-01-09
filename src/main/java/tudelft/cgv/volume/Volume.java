@@ -94,9 +94,9 @@ public class Volume {
             return (float)(((a + 2)*Math.pow(abs, 3)) - ((a + 3)*Math.pow(abs, 2)) + 1);
 
         if(abs >= 1 && abs < 2)
-            return (float)((a * Math.pow(x, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
+            return (float)((a * Math.pow(abs, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
 
-        return 0;
+        return 0.0f;
     }
     
     //////////////////////////////////////////////////////////////////////
@@ -129,12 +129,20 @@ public class Volume {
         int x = (int)Math.floor(coord[0]);
         int y = (int)Math.floor(coord[1]);
 
+        float t0 = cubicinterpolate(
+                getVoxel(x - 1, y - 1, z),
+                getVoxel(x, y - 1, z),
+                getVoxel(x + 1, y - 1, z),
+                getVoxel(x + 2, y - 1, z),
+                (float)(coord[0] - x)
+        );
+
         float t1 = cubicinterpolate(
                 getVoxel(x - 1, y, z),
                 getVoxel(x, y, z),
                 getVoxel(x + 1, y, z),
                 getVoxel(x + 2, y, z),
-                (float)(Math.abs(coord[0] - x))
+                (float)(coord[0] - x)
         );
 
         float t2 = cubicinterpolate(
@@ -142,15 +150,7 @@ public class Volume {
                 getVoxel(x, y + 1, z),
                 getVoxel(x + 1, y + 1, z),
                 getVoxel(x + 2, y + 1, z),
-                (float)(Math.abs(coord[0] - x))
-        );
-
-        float t0 = cubicinterpolate(
-                getVoxel(x - 1, y - 1, z),
-                getVoxel(x, y - 1, z),
-                getVoxel(x + 1, y - 1, z),
-                getVoxel(x + 2, y - 1, z),
-                (float)(Math.abs(coord[0] - x))
+                (float)(coord[0] - x)
         );
 
         float t3 = cubicinterpolate(
@@ -158,7 +158,7 @@ public class Volume {
                 getVoxel(x, y + 2, z),
                 getVoxel(x + 1, y + 2, z),
                 getVoxel(x + 2, y + 2, z),
-                (float)(Math.abs(coord[0] - x))
+                (float)(coord[0] - x)
         );
 
         return cubicinterpolate(t0, t1, t2, t3, (float)(coord[1] - y));
@@ -179,14 +179,21 @@ public class Volume {
         //coord is like [x_, y_, z_]
 
         int z = (int)Math.floor(coord[2]);
-        double[] twoDcoord = {coord[0], coord[1]};
 
-        float t0 = bicubicinterpolateXY(twoDcoord, z - 1);
-        float t1 = bicubicinterpolateXY(twoDcoord, z);
-        float t2 = bicubicinterpolateXY(twoDcoord, z + 1);
-        float t3 = bicubicinterpolateXY(twoDcoord, z + 2);
+        float t0 = bicubicinterpolateXY(coord, z - 1);
+        float t1 = bicubicinterpolateXY(coord, z);
+        float t2 = bicubicinterpolateXY(coord, z + 1);
+        float t3 = bicubicinterpolateXY(coord, z + 2);
 
-        return cubicinterpolate(t0, t1, t2, t3, (float)(Math.abs(coord[2] - z)));
+        float result = cubicinterpolate(t0, t1, t2, t3, (float)Math.abs(coord[2] - z));
+
+        //Without using this if sequence, there were while lines around the border of the objects
+        if(result < 0)
+            return 0;
+        if(result > 255)
+            return 255;
+
+        return result;
     }
 
 
