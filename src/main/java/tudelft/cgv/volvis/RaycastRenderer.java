@@ -20,8 +20,6 @@ import java.awt.Color;
 
 
 /**
- * Simple rendered that initially generates a view-plane aligned slice through the center of the volume data and a
- * maximum intensity projection rendering
  *
  * @author michel
  *  Edit by AVilanova & Nicola Pezzotti
@@ -134,10 +132,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 //val = volume.getVoxelNN(pixelCoord);
                 
                 //you have also the function getVoxelLinearInterpolated in Volume.java          
-                val = (int) volume.getVoxelLinearInterpolate(pixelCoord);
+                //val = (int) volume.getVoxelLinearInterpolate(pixelCoord);
                 
                 //you have to implement this function below to get the cubic interpolation
-                //val = (int) volume.getVoxelTriCubicInterpolate(pixelCoord);
+                val = (int) volume.getVoxelTriCubicInterpolate(pixelCoord);
                 
                 
                 // Map the intensity to a grey value by linear scaling
@@ -149,7 +147,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 // pixelColor.a = val > 0 ? 1.0 : 0.0;   
                 
                 // Alternatively, apply the transfer function to obtain a color using the tFunc attribute
-                // colorAux= tFunc.getColor(val);
+                 //colorAux= tFunc.getColor(val);
                 // pixelColor.r=colorAux.r;pixelColor.g=colorAux.g;pixelColor.b=colorAux.b;pixelColor.a=colorAux.a; 
                 // IMPORTANT: You can also simply use pixelColor = tFunc.getColor(val); However then you copy by reference and this means that if you change 
                 // pixelColor you will be actually changing the transfer function So BE CAREFUL when you do this kind of assignments
@@ -223,21 +221,52 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //We define the light vector as directed toward the view point (which is the source of the light)
         // another light vector would be possible
          VectorMath.setVector(lightVector, rayVector[0], rayVector[1], rayVector[2]);
-       
+        if (interactiveMode == true){
+            sampleStep = sampleStep * 3;
+        }
         // To be Implemented
               
-        //Initialization of the colors as floating point values
-        double r, g, b;
-        r = g = b = 0.0;
-        double alpha = 0.0;
-        double opacity = 0;
+        //compute the increment and the number of samples
+        double[] increments = new double[3];
+        VectorMath.setVector(increments, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
         
+        // Compute the number of times we need to sample
+       
+        int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
+
+        //the current position is initialized as the entry point
+        double[] currentPos = new double[3];
+        VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
+        
+        double alpha = 0.0;
+        
+        do {
+            double value = volume.getVoxelLinearInterpolate(currentPos); 
+            if (value >= getIsoValue()) {
+                alpha = 1.0;
+            }
+            for (int i = 0; i < 3; i++) {
+                currentPos[i] += increments[i];
+            }
+            nrSamples--;
+        } while (nrSamples > 0);
+
+
+
+
+        //Initialization of the colors as floating point values
+//        double r, g, b;
+   double r, g, b;
+        r = isoColor.r;
+        g = isoColor.g;
+        b = isoColor.b;
+//        int color;
               
         // To be Implemented this function right now just gives back a constant color
         
         
          // isoColor contains the isosurface color from the interface
-         r = isoColor.r;g = isoColor.g;b =isoColor.b;alpha =1.0;
+//         r = isoColor.r;g = isoColor.g;b =isoColor.b;alpha =1.0;
         //computes the color
         int color = computeImageColor(r,g,b,alpha);
         return color;
@@ -271,7 +300,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // another light vector would be possible 
         VectorMath.setVector(lightVector, rayVector[0], rayVector[1], rayVector[2]);
         
+        
+       
         //Initialization of the colors as floating point values
+        
         double r, g, b;
         r = g = b = 0.0;
         double alpha = 0.0;
@@ -285,8 +317,25 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         if (compositingMode) {
             // 1D transfer function 
-            voxel_color.r = 1;voxel_color.g =0;voxel_color.b =0;voxel_color.a =1;
-            opacity = 1;
+            
+             TFColor accColor = computeCompositing1D(entryPoint,exitPoint,rayVector,sampleStep);
+
+            //System.out.println(c/nrSamples);
+
+            voxel_color.r = accColor.r;
+
+            voxel_color.g = accColor.g;
+
+            voxel_color.b = accColor.b;
+
+
+
+            if (accColor.r > 0 || accColor.g > 0 || accColor.b > 0) {
+
+                opacity = 1;
+
+            }
+            
         }    
         if (tf2dMode) {
              // 2D transfer function 
@@ -308,6 +357,75 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int color = computeImageColor(r,g,b,alpha);
         return color;
     }
+    
+    
+    
+    ////////////////////////
+    
+     TFColor computeCompositing1D(double[] entryPoint, double[] exitPoint, double[] rayVector, double sampleStep) {
+
+       
+        // Compute the number of times we need to sample
+        
+        int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
+
+        //the current position is initialized as the entry point
+        double[] currentPos = new double[3];
+        VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
+        
+        double[] increments = new double[3];
+        VectorMath.setVector(increments, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
+         
+        int value = (int) volume.getVoxelLinearInterpolate(currentPos);
+
+        TFColor prevColor = this.tFunc.getColor(value);
+
+        TFColor accColor = new TFColor(0,0,0,0);
+        
+        
+        do {
+
+            for (int i = 0; i < 3; i++) {
+
+                currentPos[i] -= increments[i];
+
+            }
+            
+            value = (int) volume.getVoxelLinearInterpolate(currentPos);
+            TFColor currColor = this.tFunc.getColor(value);
+            
+            
+            
+            
+           accColor.r = currColor.a * currColor.r + (1 - currColor.a) * prevColor.r;
+
+           accColor.g = currColor.a * currColor.g + (1 - currColor.a) * prevColor.g;
+
+           accColor.b = currColor.a * currColor.b + (1 - currColor.a) * prevColor.b;
+            
+            
+            prevColor=accColor;
+
+            nrSamples--;
+
+        } while (nrSamples > 1);
+
+
+        
+        
+        
+        
+        return accColor;
+         
+         
+     }
+    
+    
+    
+    
+    
+    
+    
     
     //////////////////////////////////////////////////////////////////////
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
