@@ -134,10 +134,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 //val = volume.getVoxelNN(pixelCoord);
                 
                 //you have also the function getVoxelLinearInterpolated in Volume.java          
-                val = (int) volume.getVoxelLinearInterpolate(pixelCoord);
+                //val = (int) volume.getVoxelLinearInterpolate(pixelCoord);
                 
                 //you have to implement this function below to get the cubic interpolation
-                //val = (int) volume.getVoxelTriCubicInterpolate(pixelCoord);
+                val = (int) volume.getVoxelTriCubicInterpolate(pixelCoord);
                 
                 
                 // Map the intensity to a grey value by linear scaling
@@ -146,11 +146,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                  pixelColor.b = pixelColor.r;
 
                 // the following instruction makes intensity 0 completely transparent and the rest opaque
-                // pixelColor.a = val > 0 ? 1.0 : 0.0;   
+                //pixelColor.a = val > 0 ? 1.0 : 0.0;
                 
                 // Alternatively, apply the transfer function to obtain a color using the tFunc attribute
-                // colorAux= tFunc.getColor(val);
-                // pixelColor.r=colorAux.r;pixelColor.g=colorAux.g;pixelColor.b=colorAux.b;pixelColor.a=colorAux.a; 
+                //colorAux= tFunc.getColor(val);
+                //pixelColor.r=colorAux.r;pixelColor.g=colorAux.g;pixelColor.b=colorAux.b;pixelColor.a=colorAux.a;
                 // IMPORTANT: You can also simply use pixelColor = tFunc.getColor(val); However then you copy by reference and this means that if you change 
                 // pixelColor you will be actually changing the transfer function So BE CAREFUL when you do this kind of assignments
 
