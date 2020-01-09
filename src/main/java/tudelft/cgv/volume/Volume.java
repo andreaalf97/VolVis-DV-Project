@@ -8,7 +8,7 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * This class stores the volume anc contains functions to retrieve values of the volume.
+ *
  * @author michel modified by Anna
  */
 
@@ -76,7 +76,7 @@ public class Volume {
     }
 
 
-    float a = -0.75f; // global variable that defines the value of 'a', used in cubic interpolation.
+    float a = -0.75f; // global variable that defines the value of a used in cubic interpolation.
     // you need to chose the right value
         
     //////////////////////////////////////////////////////////////////////
@@ -87,10 +87,18 @@ public class Volume {
     public float weight (float x, Boolean one_two_sample)
     {
          float result=1.0f;
-         
-         // to be implemented
-       
-         return (float)result; 
+        if (x <= 1) {
+
+            return (float) ((a + 2) * Math.pow(x, 3) - (a + 3) * Math.pow(x, 2) + 1);
+
+        } else if (x <= 2) {
+
+            return (float) (a * Math.pow(x, 3) - 5 * a * Math.pow(x, 2) + 8 * a * x - 4 * a);
+
+        }
+
+        return (float) result; 
+   
    }
     
     //////////////////////////////////////////////////////////////////////
@@ -104,8 +112,18 @@ public class Volume {
        
         // to be implemented              
         
-        float result = 1.0f;
-                            
+        float result = 0.0f;
+        float[] points = {g0, g1, g2, g3};
+
+
+
+        for (int i = 0; i < points.length; i++) {
+
+            float absX = Math.abs(factor - i + 1);
+
+            result += points[i] * weight(absX, false);
+
+        }                    
         return result; 
     }
         
@@ -118,9 +136,39 @@ public class Volume {
             
         // to be implemented              
         
-        float result = 1.0f;
-                            
-        return result; 
+       float x0, x1, x2, x3;
+
+
+
+        int x = (int) Math.floor(coord[0]);
+
+        int y = (int) Math.floor(coord[1]);
+
+
+
+        float deltaX = (float) (coord[0] - x);
+
+        float deltaY = (float) (coord[1] - y);
+
+
+
+        //
+
+        x0 = cubicinterpolate((float) getVoxel(x - 1, y - 1, z), (float) getVoxel(x, y - 1, z), (float) getVoxel(x + 1, y - 1, z), (float) getVoxel(x + 2, y - 1, z), deltaX);
+
+        x1 = cubicinterpolate((float) getVoxel(x - 1, y, z), (float) getVoxel(x, y, z), (float) getVoxel(x + 1, y, z), (float) getVoxel(x + 2, y, z), deltaX);
+
+        //if(x == 0)  x0 = x1;
+
+        x2 = cubicinterpolate((float) getVoxel(x - 1, y + 1, z), (float) getVoxel(x, y + 1, z), (float) getVoxel(x + 1, y + 1, z), (float) getVoxel(x + 2, y + 1, z), deltaX);
+
+        x3 = cubicinterpolate((float) getVoxel(x - 1, y + 2, z), (float) getVoxel(x, y + 2, z), (float) getVoxel(x + 1, y + 2, z), (float) getVoxel(x + 2, y + 2, z), deltaX);
+
+
+
+        //
+
+        return cubicinterpolate(x0, x1, x2, x3, deltaY);
 
     }
             
@@ -137,9 +185,49 @@ public class Volume {
        
 
         // to be implemented              
-        float result = 1.0f;
-                            
-        return result; 
+   int z = (int) Math.floor(coord[2]);
+
+        float deltaZ = (float) (coord[2] - z);
+
+        float y0, y1, y2, y3;
+
+
+
+        //when z is the first coord
+
+        //if(z == 0) y0 = y1;
+
+        y0 = bicubicinterpolateXY(coord, z - 1);
+
+        y1 = bicubicinterpolateXY(coord, z);
+
+        y2 = bicubicinterpolateXY(coord, z + 1);
+
+        y3 = bicubicinterpolateXY(coord, z + 2);
+
+
+
+        float zf = cubicinterpolate(y0, y1, y2, y3, deltaZ);
+
+
+
+        //System.out.println("t: "+zf);
+
+        if (zf < 0) {
+
+            return 0;
+
+        }
+
+        if (zf > 255) {
+
+            return 255;
+
+        }
+
+
+
+        return zf;
         
 
     }

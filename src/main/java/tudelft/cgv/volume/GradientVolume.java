@@ -92,13 +92,13 @@ public class GradientVolume {
         float fac_y = (float) coord[1] - y;
         float fac_z = (float) coord[2] - z;
         
-       VoxelGradient t0 = null;
-       VoxelGradient t1 = null;
-       VoxelGradient t2 = null;
-       VoxelGradient t3 = null;
-       VoxelGradient t4 = null;
-       VoxelGradient t5 = null;
-       VoxelGradient t6 = null;
+       VoxelGradient t0 = new VoxelGradient(0,0,0);
+       VoxelGradient t1 = new VoxelGradient(0,0,0);
+       VoxelGradient t2 = new VoxelGradient(0,0,0);
+       VoxelGradient t3 = new VoxelGradient(0,0,0);
+       VoxelGradient t4 = new VoxelGradient(0,0,0);
+       VoxelGradient t5 = new VoxelGradient(0,0,0);
+       VoxelGradient t6 = new VoxelGradient(0,0,0);
       
        interpolate(getGradient(x, y, z), getGradient(x+1, y, z), fac_x,t0);
        interpolate(getGradient(x, y+1, z), getGradient(x+1, y+1, z),fac_x,t1);
