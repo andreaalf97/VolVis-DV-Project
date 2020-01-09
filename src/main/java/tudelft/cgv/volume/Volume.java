@@ -83,23 +83,20 @@ public class Volume {
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
     ////////////////////////////////////////////////////////////////////// 
         
-    // Function that computes the weights for one of the 4 samples involved in the 1D interpolation 
+    // Function that computes the weights for one of the 4 samples involved in the 1D interpolation
+    // Weight(x) is basically h(x)
     public float weight (float x, Boolean one_two_sample)
     {
-         float result=1.0f;
-        if (x <= 1) {
+        float abs = Math.abs(x);
 
-            return (float) ((a + 2) * Math.pow(x, 3) - (a + 3) * Math.pow(x, 2) + 1);
+        if(abs < 1)
+            return (float)(((a + 2)*Math.pow(abs, 3)) - ((a + 3)*Math.pow(abs, 2)) + 1);
 
-        } else if (x <= 2) {
+        if(abs >= 1 && abs < 2)
+            return (float)((a * Math.pow(abs, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
 
-            return (float) (a * Math.pow(x, 3) - 5 * a * Math.pow(x, 2) + 8 * a * x - 4 * a);
-
-        }
-
-        return (float) result; 
-   
-   }
+        return 0.0f;
+    }
     
     //////////////////////////////////////////////////////////////////////
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
@@ -109,21 +106,13 @@ public class Volume {
     // We assume the out of bounce checks have been done earlier
     
     public float cubicinterpolate(float g0, float g1, float g2, float g3, float factor) {
-       
-        // to be implemented              
-        
         float result = 0.0f;
-        float[] points = {g0, g1, g2, g3};
 
-
-
-        for (int i = 0; i < points.length; i++) {
-
-            float absX = Math.abs(factor - i + 1);
-
-            result += points[i] * weight(absX, false);
-
-        }                    
+        result += g0 * weight(1 + factor, false);
+        result += g1 * weight(factor, false);
+        result += g2 * weight(1 - factor, false);
+        result += g3 * weight(2 - factor, false);
+      
         return result; 
     }
         
@@ -133,42 +122,44 @@ public class Volume {
     // 2D cubic interpolation implemented here. We do it for plane XY. Coord contains the position.
     // We assume the out of bounce checks have been done earlier
     public float bicubicinterpolateXY(double[] coord,int z) {
-            
-        // to be implemented              
-        
-       float x0, x1, x2, x3;
 
+        //Coord is an array in the form (x_, y_)
+        int x = (int)Math.floor(coord[0]);
+        int y = (int)Math.floor(coord[1]);
 
+        float t0 = cubicinterpolate(
+                getVoxel(x - 1, y - 1, z),
+                getVoxel(x, y - 1, z),
+                getVoxel(x + 1, y - 1, z),
+                getVoxel(x + 2, y - 1, z),
+                (float)(coord[0] - x)
+        );
 
-        int x = (int) Math.floor(coord[0]);
+        float t1 = cubicinterpolate(
+                getVoxel(x - 1, y, z),
+                getVoxel(x, y, z),
+                getVoxel(x + 1, y, z),
+                getVoxel(x + 2, y, z),
+                (float)(coord[0] - x)
+        );
 
-        int y = (int) Math.floor(coord[1]);
+        float t2 = cubicinterpolate(
+                getVoxel(x - 1, y + 1, z),
+                getVoxel(x, y + 1, z),
+                getVoxel(x + 1, y + 1, z),
+                getVoxel(x + 2, y + 1, z),
+                (float)(coord[0] - x)
+        );
 
+        float t3 = cubicinterpolate(
+                getVoxel(x - 1, y + 2, z),
+                getVoxel(x, y + 2, z),
+                getVoxel(x + 1, y + 2, z),
+                getVoxel(x + 2, y + 2, z),
+                (float)(coord[0] - x)
+        );
 
-
-        float deltaX = (float) (coord[0] - x);
-
-        float deltaY = (float) (coord[1] - y);
-
-
-
-        //
-
-        x0 = cubicinterpolate((float) getVoxel(x - 1, y - 1, z), (float) getVoxel(x, y - 1, z), (float) getVoxel(x + 1, y - 1, z), (float) getVoxel(x + 2, y - 1, z), deltaX);
-
-        x1 = cubicinterpolate((float) getVoxel(x - 1, y, z), (float) getVoxel(x, y, z), (float) getVoxel(x + 1, y, z), (float) getVoxel(x + 2, y, z), deltaX);
-
-        //if(x == 0)  x0 = x1;
-
-        x2 = cubicinterpolate((float) getVoxel(x - 1, y + 1, z), (float) getVoxel(x, y + 1, z), (float) getVoxel(x + 1, y + 1, z), (float) getVoxel(x + 2, y + 1, z), deltaX);
-
-        x3 = cubicinterpolate((float) getVoxel(x - 1, y + 2, z), (float) getVoxel(x, y + 2, z), (float) getVoxel(x + 1, y + 2, z), (float) getVoxel(x + 2, y + 2, z), deltaX);
-
-
-
-        //
-
-        return cubicinterpolate(x0, x1, x2, x3, deltaY);
+        return cubicinterpolate(t0, t1, t2, t3, (float)(coord[1] - y));
 
     }
             
@@ -182,54 +173,25 @@ public class Volume {
                 || coord[2] < 1 || coord[2] > (dimZ-3)) {
             return 0;
         }
-       
+      
+        //coord is like [x_, y_, z_]
 
-        // to be implemented              
-   int z = (int) Math.floor(coord[2]);
+        int z = (int)Math.floor(coord[2]);
 
-        float deltaZ = (float) (coord[2] - z);
+        float t0 = bicubicinterpolateXY(coord, z - 1);
+        float t1 = bicubicinterpolateXY(coord, z);
+        float t2 = bicubicinterpolateXY(coord, z + 1);
+        float t3 = bicubicinterpolateXY(coord, z + 2);
 
-        float y0, y1, y2, y3;
+        float result = cubicinterpolate(t0, t1, t2, t3, (float)Math.abs(coord[2] - z));
 
-
-
-        //when z is the first coord
-
-        //if(z == 0) y0 = y1;
-
-        y0 = bicubicinterpolateXY(coord, z - 1);
-
-        y1 = bicubicinterpolateXY(coord, z);
-
-        y2 = bicubicinterpolateXY(coord, z + 1);
-
-        y3 = bicubicinterpolateXY(coord, z + 2);
-
-
-
-        float zf = cubicinterpolate(y0, y1, y2, y3, deltaZ);
-
-
-
-        //System.out.println("t: "+zf);
-
-        if (zf < 0) {
-
+        //Without using this if sequence, there were while lines around the border of the objects
+        if(result < 0)
             return 0;
-
-        }
-
-        if (zf > 255) {
-
+        if(result > 255)
             return 255;
 
-        }
-
-
-
-        return zf;
-        
-
+        return result;
     }
 
 
