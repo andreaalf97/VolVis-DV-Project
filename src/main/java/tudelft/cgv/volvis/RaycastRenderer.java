@@ -313,24 +313,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // To be Implemented this function right now just gives back a constant color depending on the mode
         
         if (compositingMode) {
-            // 1D transfer function 
-            
-             colorAux = computeCompositing1D(entryPoint,exitPoint,rayVector,sampleStep);
+            // 1D transfer function
+            colorAux = computeCompositing1D(entryPoint,exitPoint,rayVector,sampleStep);
 
             voxel_color.r = colorAux.r;
-
             voxel_color.g = colorAux.g;
-
             voxel_color.b = colorAux.b;
 
-
-
-            if (colorAux.r > 0 || colorAux.g > 0 || colorAux.b > 0) {
-
+            if (colorAux.r > 0 || colorAux.g > 0 || colorAux.b > 0)
                 opacity = 1;
 
-            }
-            
         }    
         if (tf2dMode) {
              // 2D transfer function 
@@ -374,16 +366,19 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
        
         // Compute the number of times we need to sample
-        
-        int nrSamples = 1 + (int) Math.floor(VectorMath.distance(entryPoint, exitPoint) / sampleStep);
 
-        //the current position is initialized as the entry point
+         double distance = VectorMath.distance(entryPoint, exitPoint);
+        int nrSamples = 1 + (int) Math.floor(distance / sampleStep);
+
+        //the current position is initialized as the exit point
         double[] currentPos = new double[3];
         VectorMath.setVector(currentPos, exitPoint[0], exitPoint[1], exitPoint[2]);
-        
+
+        //Computes how much we need to increment each direction at each time step
         double[] increments = new double[3];
         VectorMath.setVector(increments, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
-         
+
+        //Retrieve the value of the interpolated initial position
         int value = (int) volume.getVoxelLinearInterpolate(currentPos);
 
         TFColor prevColor = this.tFunc.getColor(value);
@@ -393,11 +388,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         do {
 
-            for (int i = 0; i < 3; i++) {
-
+            for (int i = 0; i < 3; i++)
                 currentPos[i] -= increments[i];
-
-            }
             
             value = (int) volume.getVoxelLinearInterpolate(currentPos);
             TFColor currColor = this.tFunc.getColor(value);
@@ -418,14 +410,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         } while (nrSamples > 1);
 
-
-        
-        
-        
-        
         return accColor;
-         
-         
+
      }
      
     TFColor computeCompositing1DP(double[] entryPoint, double[] exitPoint, double[] lightVector, double[] rayVector, double sampleStep) {
