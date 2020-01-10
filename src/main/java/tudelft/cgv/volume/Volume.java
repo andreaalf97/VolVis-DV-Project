@@ -85,7 +85,7 @@ public class Volume {
         
     // Function that computes the weights for one of the 4 samples involved in the 1D interpolation
     // Weight(x) is basically h(x)
-    public float weight (float x, Boolean one_two_sample)
+    public float weight(float x)
     {
         float abs = Math.abs(x);
 
@@ -108,10 +108,10 @@ public class Volume {
     public float cubicinterpolate(float g0, float g1, float g2, float g3, float factor) {
         float result = 0.0f;
 
-        result += g0 * weight(1 + factor, false);
-        result += g1 * weight(factor, false);
-        result += g2 * weight(1 - factor, false);
-        result += g3 * weight(2 - factor, false);
+        result += g0 * weight(1 + factor);
+        result += g1 * weight(factor);
+        result += g2 * weight(1 - factor);
+        result += g3 * weight(2 - factor);
       
         return result; 
     }
