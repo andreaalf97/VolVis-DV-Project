@@ -25,7 +25,7 @@ import java.awt.Color;
  *
  * @author michel
  *  Edit by AVilanova & Nicola Pezzotti
- * 
+ *  Edit by Andrea Alfieri, Reinier Koops & Aditya Kunar
  * 
  * Main functions to implement the volume rendering
  */
@@ -96,7 +96,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Here will be stored the 3D coordinates of every pixel in the plane 
         double[] pixelCoord = new double[3];
 
-        // We get the size of the image/texture we will be puting the result of the 
+        // We get the size of the image/texture we will be putting the result of the 
         // volume rendering operation.
         int imageW=image.getWidth();
         int imageH=image.getHeight();
@@ -106,8 +106,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         imageCenter[0]= imageW/2;
         imageCenter[1]= imageH/2;
         
-        // imageW/ image H contains the real width of the image we will use given the resolution. 
-        //The resolution is generated once based on the maximum resolution.
+        // imageW / image H contains the real width of the image we will use given the resolution. 
+        // The resolution is generated once based on the maximum resolution.
         imageW = (int) (imageW*((max_res_factor/res_factor)));
         imageH = (int) (imageH*((max_res_factor/res_factor)));
 
@@ -116,7 +116,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
         // Color that will be used as a result 
         TFColor pixelColor = new TFColor();
-        // Auxiliar color
+        // Auxiliary color
         TFColor colorAux;
 
         // Contains the voxel value of interest

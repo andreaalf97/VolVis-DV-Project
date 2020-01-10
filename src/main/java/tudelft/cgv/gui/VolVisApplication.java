@@ -22,7 +22,7 @@ import tudelft.cgv.volvis.Visualization;
  * 
  * Basic initial application
  * 
- * NO IMPLEMENTATION NEEDED FOR THE BASIC ASSIGNMENTME 
+ * NO IMPLEMENTATION NEEDED FOR THE BASIC ASSIGNMENT 
  * YOu need to modify it if you want to change the interface
  */
 
@@ -143,7 +143,8 @@ public class VolVisApplication extends javax.swing.JFrame {
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
         // TODO add your handling code here:
         String currentDir = System.getProperty("user.dir");
-        String dataDir = currentDir + "\\..\\set1_data\\";
+        // Faster selecting of files.
+        String dataDir = currentDir + "/datasets";
         JFileChooser fc = new JFileChooser(dataDir);
         fc.setFileFilter(new FileFilter() {
 
