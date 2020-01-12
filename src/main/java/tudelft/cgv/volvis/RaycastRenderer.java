@@ -345,19 +345,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // To be Implemented this function right now just gives back a constant color depending on the mode
         
         if (compositingMode) {
-            // 1D transfer function 
-            
-             TFColor accColor = computeCompositing1D(entryPoint,exitPoint,lightVector,rayVector,sampleStep);
-
-            //System.out.println(c/nrSamples);
-
-            voxel_color.r = accColor.r;
-
-            voxel_color.g = accColor.g;
-
-            voxel_color.b = accColor.b;
-
-
+            // 1D transfer function
+            colorAux = computeCompositing1D(entryPoint,exitPoint, lightVector, rayVector, sampleStep);
 
             voxel_color.r = colorAux.r;
             voxel_color.g = colorAux.g;
