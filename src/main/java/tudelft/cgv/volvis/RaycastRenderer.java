@@ -94,7 +94,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Here will be stored the 3D coordinates of every pixel in the plane 
         double[] pixelCoord = new double[3];
 
-        // We get the size of the image/texture we will be puting the result of the 
+        // We get the size of the image/texture we will be putting the result of the
         // volume rendering operation.
         int imageW=image.getWidth();
         int imageH=image.getHeight();
