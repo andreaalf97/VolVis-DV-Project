@@ -5,7 +5,6 @@
 package tudelft.cgv.util;
 
 /**
- * Static methods for vector computations
  *
  * @author michel and modified by Anna Vilanova
  * 

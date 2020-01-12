@@ -15,8 +15,7 @@ import tudelft.cgv.volvis.TransferFunction;
 
 
  /**
- * Methods to edit transfer functions
-  *
+ *
  * @author michel and modified by Anna Vilanova 
  * NO IMPLEMENTATION NEEDED FOR THE BASIC ASSIGNMENTME 
  * YOu need to modify it if you want to change the interface

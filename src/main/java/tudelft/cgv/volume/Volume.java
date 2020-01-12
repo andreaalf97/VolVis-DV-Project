@@ -83,20 +83,15 @@ public class Volume {
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
     ////////////////////////////////////////////////////////////////////// 
         
-    // Function that computes the weights for one of the 4 samples involved in the 1D interpolation
-    // Weight(x) is basically h(x)
+    // Function that computes the weights for one of the 4 samples involved in the 1D interpolation 
     public float weight (float x, Boolean one_two_sample)
     {
-        float abs = Math.abs(x);
-
-        if(abs < 1)
-            return (float)(((a + 2)*Math.pow(abs, 3)) - ((a + 3)*Math.pow(abs, 2)) + 1);
-
-        if(abs >= 1 && abs < 2)
-            return (float)((a * Math.pow(abs, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
-
-        return 0.0f;
-    }
+         float result=1.0f;
+         
+         // to be implemented
+       
+         return (float)result; 
+   }
     
     //////////////////////////////////////////////////////////////////////
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
@@ -106,13 +101,11 @@ public class Volume {
     // We assume the out of bounce checks have been done earlier
     
     public float cubicinterpolate(float g0, float g1, float g2, float g3, float factor) {
-        float result = 0.0f;
-
-        result += g0 * weight(1 + factor, false);
-        result += g1 * weight(factor, false);
-        result += g2 * weight(1 - factor, false);
-        result += g3 * weight(2 - factor, false);
-      
+       
+        // to be implemented              
+        
+        float result = 1.0f;
+                            
         return result; 
     }
         
@@ -122,44 +115,12 @@ public class Volume {
     // 2D cubic interpolation implemented here. We do it for plane XY. Coord contains the position.
     // We assume the out of bounce checks have been done earlier
     public float bicubicinterpolateXY(double[] coord,int z) {
-
-        //Coord is an array in the form (x_, y_)
-        int x = (int)Math.floor(coord[0]);
-        int y = (int)Math.floor(coord[1]);
-
-        float t0 = cubicinterpolate(
-                getVoxel(x - 1, y - 1, z),
-                getVoxel(x, y - 1, z),
-                getVoxel(x + 1, y - 1, z),
-                getVoxel(x + 2, y - 1, z),
-                (float)(coord[0] - x)
-        );
-
-        float t1 = cubicinterpolate(
-                getVoxel(x - 1, y, z),
-                getVoxel(x, y, z),
-                getVoxel(x + 1, y, z),
-                getVoxel(x + 2, y, z),
-                (float)(coord[0] - x)
-        );
-
-        float t2 = cubicinterpolate(
-                getVoxel(x - 1, y + 1, z),
-                getVoxel(x, y + 1, z),
-                getVoxel(x + 1, y + 1, z),
-                getVoxel(x + 2, y + 1, z),
-                (float)(coord[0] - x)
-        );
-
-        float t3 = cubicinterpolate(
-                getVoxel(x - 1, y + 2, z),
-                getVoxel(x, y + 2, z),
-                getVoxel(x + 1, y + 2, z),
-                getVoxel(x + 2, y + 2, z),
-                (float)(coord[0] - x)
-        );
-
-        return cubicinterpolate(t0, t1, t2, t3, (float)(coord[1] - y));
+            
+        // to be implemented              
+        
+        float result = 1.0f;
+                            
+        return result; 
 
     }
             
@@ -173,25 +134,14 @@ public class Volume {
                 || coord[2] < 1 || coord[2] > (dimZ-3)) {
             return 0;
         }
-      
-        //coord is like [x_, y_, z_]
+       
 
-        int z = (int)Math.floor(coord[2]);
+        // to be implemented              
+        float result = 1.0f;
+                            
+        return result; 
+        
 
-        float t0 = bicubicinterpolateXY(coord, z - 1);
-        float t1 = bicubicinterpolateXY(coord, z);
-        float t2 = bicubicinterpolateXY(coord, z + 1);
-        float t3 = bicubicinterpolateXY(coord, z + 2);
-
-        float result = cubicinterpolate(t0, t1, t2, t3, (float)Math.abs(coord[2] - z));
-
-        //Without using this if sequence, there were while lines around the border of the objects
-        if(result < 0)
-            return 0;
-        if(result > 255)
-            return 255;
-
-        return result;
     }
 
 

@@ -20,7 +20,6 @@ import tudelft.cgv.volvis.TransferFunction2D;
 
 
 /**
- * Methods to edit transfer functions
  *
  * @author michel and modified by Anna Vilanova 
  * NO IMPLEMENTATION NEEDED FOR THE BASIC ASSIGNMENTME 

@@ -7,7 +7,7 @@ package tudelft.cgv.util;
 import com.jogamp.opengl.GL2;
 
 /**
- * Provides a virtual trackball to perform 3D rotations
+ *
  * @author michel and modified by Anna Vilanova 
  * 
  * NO IMPLEMENTATION NEEDED FOR THE BASIC ASSIGNMENTME 
