@@ -84,14 +84,28 @@ public class Volume {
     ////////////////////////////////////////////////////////////////////// 
         
     // Function that computes the weights for one of the 4 samples involved in the 1D interpolation 
-    public float weight (float x, Boolean one_two_sample)
+    public float weight (float x, boolean internal)
     {
-         float result=1.0f;
-         
-         // to be implemented
-       
-         return (float)result; 
-   }
+        float abs = Math.abs(x);
+
+        // if 0 <= abs < 1
+        // h(x) = (a+2)(abs^3) - (a+3)(abs^2) + 1
+
+        // if 1 <= abs < 2
+        // h(x) = a(abs^3) - (5a)(abs^2) + (8a)(abs) - 4a
+
+        // if abs >= 2
+        // h(x) = 0
+
+        //Internal means case 0
+        //Case 3 can't happen if we assume distance is 1 between all voxels
+
+        if(internal)
+            return (float)(((a + 2)*Math.pow(abs, 3)) - ((a + 3)*Math.pow(abs, 2)) + 1);
+
+        return (float)((a * Math.pow(abs, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
+
+    }
     
     //////////////////////////////////////////////////////////////////////
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
@@ -101,12 +115,15 @@ public class Volume {
     // We assume the out of bounce checks have been done earlier
     
     public float cubicinterpolate(float g0, float g1, float g2, float g3, float factor) {
-       
-        // to be implemented              
-        
-        float result = 1.0f;
-                            
-        return result; 
+
+        float result = 0.0f;
+
+        result += g0 * weight(1 + factor, false);
+        result += g1 * weight(factor, true);
+        result += g2 * weight(1 - factor, true);
+        result += g3 * weight(2 - factor, false);
+
+        return result;
     }
         
     //////////////////////////////////////////////////////////////////////
@@ -115,12 +132,55 @@ public class Volume {
     // 2D cubic interpolation implemented here. We do it for plane XY. Coord contains the position.
     // We assume the out of bounce checks have been done earlier
     public float bicubicinterpolateXY(double[] coord,int z) {
-            
-        // to be implemented              
-        
-        float result = 1.0f;
-                            
-        return result; 
+
+        //Coord is an array in the form (x_, y_)
+        int x = (int)Math.floor(coord[0]);
+        int y = (int)Math.floor(coord[1]);
+
+        // (x-1; y+2)       (x; y+2)        (x+1; y+2)      (x+2; y+2)
+
+        // (x-1; y+1)       (x; y+1)        (x+1; y+1)      (x+2; y+1)
+
+        //                      (coord[0]; coord[1])
+
+        // (x-1; y)         (x; y)          (x+1; y)        (x+2; y)
+
+        // (x-1; y-1)       (x; y-1)        (x+1; y-1)      (x+2; y-1)
+
+
+        float t0 = cubicinterpolate(
+                getVoxel(x - 1, y - 1, z),
+                getVoxel(x, y - 1, z),
+                getVoxel(x + 1, y - 1, z),
+                getVoxel(x + 2, y - 1, z),
+                (float)(coord[0] - x)
+        );
+
+        float t1 = cubicinterpolate(
+                getVoxel(x - 1, y, z),
+                getVoxel(x, y, z),
+                getVoxel(x + 1, y, z),
+                getVoxel(x + 2, y, z),
+                (float)(coord[0] - x)
+        );
+
+        float t2 = cubicinterpolate(
+                getVoxel(x - 1, y + 1, z),
+                getVoxel(x, y + 1, z),
+                getVoxel(x + 1, y + 1, z),
+                getVoxel(x + 2, y + 1, z),
+                (float)(coord[0] - x)
+        );
+
+        float t3 = cubicinterpolate(
+                getVoxel(x - 1, y + 2, z),
+                getVoxel(x, y + 2, z),
+                getVoxel(x + 1, y + 2, z),
+                getVoxel(x + 2, y + 2, z),
+                (float)(coord[0] - x)
+        );
+
+        return cubicinterpolate(t0, t1, t2, t3, (float)(coord[1] - y));
 
     }
             
@@ -130,18 +190,31 @@ public class Volume {
     // 3D cubic interpolation implemented here given a position in the volume given by coord.
     
     public float getVoxelTriCubicInterpolate(double[] coord) {
+
+        //Outside of the volume, the values is 0 by default
         if (coord[0] < 1 || coord[0] > (dimX-3) || coord[1] < 1 || coord[1] > (dimY-3)
                 || coord[2] < 1 || coord[2] > (dimZ-3)) {
             return 0;
         }
-       
 
-        // to be implemented              
-        float result = 1.0f;
-                            
-        return result; 
-        
+        //coord is like [x_, y_, z_]
 
+        int z = (int)Math.floor(coord[2]);
+
+        float t0 = bicubicinterpolateXY(coord, z - 1);
+        float t1 = bicubicinterpolateXY(coord, z);
+        float t2 = bicubicinterpolateXY(coord, z + 1);
+        float t3 = bicubicinterpolateXY(coord, z + 2);
+
+        float result = cubicinterpolate(t0, t1, t2, t3, (float)Math.abs(coord[2] - z));
+
+        //Clamping the negative values
+        if(result < 0)
+            return 0;
+        if(result > 255)
+            return 255;
+
+        return result;
     }
 
 

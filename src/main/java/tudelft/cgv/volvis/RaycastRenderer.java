@@ -69,7 +69,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // we start by clearing the image
         resetImage();
 
-        // vector uVec and vVec define the view plane, 
+        // vector uVec and vVec define the view plane,
         // perpendicular to the view vector viewVec which is going from the view point towards the object
         // uVec contains the up vector of the camera in world coordinates (image vertical)
         // vVec contains the horizontal vector in world coordinates (image horizontal)
@@ -135,20 +135,24 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 val = (int) volume.getVoxelLinearInterpolate(pixelCoord);
                 
                 //you have to implement this function below to get the cubic interpolation
-                //val = (int) volume.getVoxelTriCubicInterpolate(pixelCoord);
+                // val = (int) volume.getVoxelTriCubicInterpolate(pixelCoord);
                 
                 
                 // Map the intensity to a grey value by linear scaling
-                 pixelColor.r = (val/max);
-                 pixelColor.g = pixelColor.r;
-                 pixelColor.b = pixelColor.r;
+                 //pixelColor.r = (val/max);
+                 //pixelColor.g = pixelColor.r;
+                 //pixelColor.b = pixelColor.r;
 
                 // the following instruction makes intensity 0 completely transparent and the rest opaque
                 // pixelColor.a = val > 0 ? 1.0 : 0.0;   
                 
                 // Alternatively, apply the transfer function to obtain a color using the tFunc attribute
-                // colorAux= tFunc.getColor(val);
-                // pixelColor.r=colorAux.r;pixelColor.g=colorAux.g;pixelColor.b=colorAux.b;pixelColor.a=colorAux.a; 
+                colorAux= tFunc.getColor(val);
+                pixelColor.r=colorAux.r;
+                pixelColor.g=colorAux.g;
+                pixelColor.b=colorAux.b;
+                pixelColor.a=colorAux.a;
+
                 // IMPORTANT: You can also simply use pixelColor = tFunc.getColor(val); However then you copy by reference and this means that if you change 
                 // pixelColor you will be actually changing the transfer function So BE CAREFUL when you do this kind of assignments
 
@@ -221,21 +225,49 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //We define the light vector as directed toward the view point (which is the source of the light)
         // another light vector would be possible
          VectorMath.setVector(lightVector, rayVector[0], rayVector[1], rayVector[2]);
-       
-        // To be Implemented
+
+       //compute the increment and the number of samples
+       double[] increments = new double[3];
+       VectorMath.setVector(increments, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
+
+       // Compute the number of times we need to sample
+       int nrSamples = 1 + (int) Math.floor( VectorMath.distance(entryPoint, exitPoint)/ sampleStep);
+
+       //the current position is initialized as the entry point
+       double[] currentPos = new double[3];
+       VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
+
+       double alpha = 0.0;
+
+       do {
+           float value = volume.getVoxelLinearInterpolate(currentPos);
+
+           if(value == getIsoValue()){
+               alpha = 1.0;
+               break;
+           }
+
+           for (int i = 0; i < 3; i++) {
+               currentPos[i] += increments[i];
+           }
+           nrSamples--;
+       }while (nrSamples > 0);
               
         //Initialization of the colors as floating point values
         double r, g, b;
         r = g = b = 0.0;
-        double alpha = 0.0;
-        double opacity = 0;
+
+        //double opacity = 0;
         
               
         // To be Implemented this function right now just gives back a constant color
         
         
          // isoColor contains the isosurface color from the interface
-         r = isoColor.r;g = isoColor.g;b =isoColor.b;alpha =1.0;
+         r = isoColor.r;
+         g = isoColor.g;
+         b =isoColor.b;
+
         //computes the color
         int color = computeImageColor(r,g,b,alpha);
         return color;
@@ -282,9 +314,14 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // To be Implemented this function right now just gives back a constant color depending on the mode
         
         if (compositingMode) {
-            // 1D transfer function 
-            voxel_color.r = 1;voxel_color.g =0;voxel_color.b =0;voxel_color.a =1;
-            opacity = 1;
+
+            // 1D transfer function
+
+            voxel_color = getColorCompositingMode(entryPoint, exitPoint, rayVector, sampleStep);
+
+            if(voxel_color.r > 0 || voxel_color.g > 0 || voxel_color.b > 0)
+                opacity = 1;
+
         }    
         if (tf2dMode) {
              // 2D transfer function 
@@ -306,7 +343,53 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int color = computeImageColor(r,g,b,alpha);
         return color;
     }
-    
+
+    private TFColor getColorCompositingMode(double[] entryPoint, double[] exitPoint, double[] rayVector, double sampleStep) {
+
+        //compute the increment and the number of samples
+        double[] increments = new double[3];
+        VectorMath.setVector(increments, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
+
+        // Compute the number of times we need to sample
+        double distance = VectorMath.distance(entryPoint, exitPoint);
+        int nrSamples = 1 + (int) Math.floor(distance / sampleStep);
+
+        //the current position is initialized as the entry point
+        //****************************************************************************
+        //Remember that the entry point is the one closer to the eye !!!
+        //****************************************************************************
+        double[] currentPos = new double[3];
+        VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
+
+        int value = (int) volume.getVoxelLinearInterpolate(currentPos);
+        TFColor currentColor = tFunc.getColor(value); // C(i-1)
+
+        TFColor accumulatedColor = new TFColor(0, 0, 0, 0); // C'(i-1)
+
+        while(nrSamples > 0) {
+
+            if(currentColor.a > 0.97 || currentColor.a < 0)
+                return accumulatedColor;
+
+            accumulatedColor.r = currentColor.r * currentColor.a + ((1 - currentColor.a) * accumulatedColor.r);
+            accumulatedColor.g = currentColor.g * currentColor.a + ((1 - currentColor.a) * accumulatedColor.g);
+            accumulatedColor.b = currentColor.b * currentColor.a + ((1 - currentColor.a) * accumulatedColor.b);
+            accumulatedColor.a = currentColor.a * currentColor.a + ((1 - currentColor.a) * accumulatedColor.a);
+
+            for (int i = 0; i < 3; i++) {
+                currentPos[i] += increments[i];
+            }
+
+            value = (int) volume.getVoxelLinearInterpolate(currentPos);
+            currentColor = tFunc.getColor(value);
+
+            nrSamples--;
+        }
+
+        return accumulatedColor;
+
+    }
+
     //////////////////////////////////////////////////////////////////////
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
     ////////////////////////////////////////////////////////////////////// 
@@ -386,6 +469,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double[] volumeCenter = new double[3];
         computeVolumeCenter(volumeCenter);
 
+        // THE ENTRY POINT IS THE ONE CLOSER TO THE EYE.
+        // THE RAY IS TRACED FROM THE VIEW PLANE TOWARDS THE 3D VOLUME OBJECT
         
         // ray computation for each pixel
         for (int j = imageCenter[1] - imageH/2; j < imageCenter[1] + imageH/2; j += increment) {
