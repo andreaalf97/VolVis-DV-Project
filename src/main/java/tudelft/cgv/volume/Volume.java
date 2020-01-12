@@ -85,17 +85,27 @@ public class Volume {
         
     // Function that computes the weights for one of the 4 samples involved in the 1D interpolation
     // Weight(x) is basically h(x)
-    public float weight (float x, Boolean one_two_sample)
+    public float weight (float x, Boolean internal)
     {
         float abs = Math.abs(x);
 
-        if(abs < 1)
+        // if 0 <= abs < 1
+        // h(x) = (a+2)(abs^3) - (a+3)(abs^2) + 1
+
+        // if 1 <= abs < 2
+        // h(x) = a(abs^3) - (5a)(abs^2) + (8a)(abs) - 4a
+
+        // if abs >= 2
+        // h(x) = 0
+
+        //Internal means case 0
+        //Case 3 can't happen if we assume distance is 1 between all voxels
+
+        if(internal)
             return (float)(((a + 2)*Math.pow(abs, 3)) - ((a + 3)*Math.pow(abs, 2)) + 1);
 
-        if(abs >= 1 && abs < 2)
-            return (float)((a * Math.pow(abs, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
+        return (float)((a * Math.pow(abs, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
 
-        return 0.0f;
     }
     
     //////////////////////////////////////////////////////////////////////
@@ -104,16 +114,17 @@ public class Volume {
     // Function that computes the 1D cubic interpolation. g0,g1,g2,g3 contain the values of the voxels that we want to interpolate
     // factor contains the distance from the value g1 to the position we want to interpolate to.
     // We assume the out of bounce checks have been done earlier
-    
+
     public float cubicinterpolate(float g0, float g1, float g2, float g3, float factor) {
+
         float result = 0.0f;
 
         result += g0 * weight(1 + factor, false);
-        result += g1 * weight(factor, false);
-        result += g2 * weight(1 - factor, false);
+        result += g1 * weight(factor, true);
+        result += g2 * weight(1 - factor, true);
         result += g3 * weight(2 - factor, false);
-      
-        return result; 
+
+        return result;
     }
         
     //////////////////////////////////////////////////////////////////////
@@ -126,6 +137,17 @@ public class Volume {
         //Coord is an array in the form (x_, y_)
         int x = (int)Math.floor(coord[0]);
         int y = (int)Math.floor(coord[1]);
+
+        // (x-1; y+2)       (x; y+2)        (x+1; y+2)      (x+2; y+2)
+
+        // (x-1; y+1)       (x; y+1)        (x+1; y+1)      (x+2; y+1)
+
+        //                      (coord[0]; coord[1])
+
+        // (x-1; y)         (x; y)          (x+1; y)        (x+2; y)
+
+        // (x-1; y-1)       (x; y-1)        (x+1; y-1)      (x+2; y-1)
+
 
         float t0 = cubicinterpolate(
                 getVoxel(x - 1, y - 1, z),
@@ -167,13 +189,15 @@ public class Volume {
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
     ////////////////////////////////////////////////////////////////////// 
     // 3D cubic interpolation implemented here given a position in the volume given by coord.
-    
+
     public float getVoxelTriCubicInterpolate(double[] coord) {
+
+        //Outside of the volume, the values is 0 by default
         if (coord[0] < 1 || coord[0] > (dimX-3) || coord[1] < 1 || coord[1] > (dimY-3)
                 || coord[2] < 1 || coord[2] > (dimZ-3)) {
             return 0;
         }
-      
+
         //coord is like [x_, y_, z_]
 
         int z = (int)Math.floor(coord[2]);
@@ -185,7 +209,7 @@ public class Volume {
 
         float result = cubicinterpolate(t0, t1, t2, t3, (float)Math.abs(coord[2] - z));
 
-        //Without using this if sequence, there were while lines around the border of the objects
+        //Clamping the negative values
         if(result < 0)
             return 0;
         if(result > 255)
