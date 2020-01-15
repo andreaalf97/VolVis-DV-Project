@@ -98,7 +98,7 @@ public class Volume {
         // if abs >= 2
         // h(x) = 0
 
-        //Internal means case 0
+        //Internal means case 1
         //Case 3 can't happen if we assume distance is 1 between all voxels
 
         if(internal)
@@ -119,6 +119,7 @@ public class Volume {
 
         float result = 0.0f;
 
+        // interpolation takes into account 4 voxels in each direction
         result += g0 * weight(1 + factor, false);
         result += g1 * weight(factor, true);
         result += g2 * weight(1 - factor, true);
@@ -148,6 +149,7 @@ public class Volume {
 
         // (x-1; y-1)       (x; y-1)        (x+1; y-1)      (x+2; y-1)
 
+        //interpolates each line from the vertical axis and then uses these values to interpolate on the x axis
 
         float t0 = cubicinterpolate(
                 getVoxel(x - 1, y - 1, z),
