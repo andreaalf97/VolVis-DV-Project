@@ -375,10 +375,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         if (compositingMode) {
             // 1D transfer function
-            // Computes the ray compositing and returns the final accumalated color.
-            TFColor colorAux;
-            colorAux = rayCompositing(entryPoint,exitPoint,lightVector,rayVector,sampleStep);
-            //assign the local colors to the global colors.
+            colorAux = computeCompositing1D(entryPoint,exitPoint, lightVector, rayVector, sampleStep);
+
             voxel_color.r = colorAux.r;
             voxel_color.g = colorAux.g;
             voxel_color.b = colorAux.b;
