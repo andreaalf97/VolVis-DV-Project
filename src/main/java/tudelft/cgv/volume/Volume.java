@@ -49,7 +49,8 @@ public class Volume {
     }
              
     //Do NOT modify this function
-    // This function returns the trilinear interpolated value of the position given by  position coord.
+    // This function returns the trilinear interpolated value of the position given by  position coord. 
+    
     public float getVoxelLinearInterpolate(double[] coord) {
         if (coord[0] < 0 || coord[0] > (dimX-2) || coord[1] < 0 || coord[1] > (dimY-2)
                 || coord[2] < 0 || coord[2] > (dimZ-2)) {
