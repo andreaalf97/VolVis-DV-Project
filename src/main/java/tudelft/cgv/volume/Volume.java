@@ -14,12 +14,8 @@ import java.io.IOException;
  * Edit by Andrea Alfieri, Reinier Koops & Aditya Kunar
  */
 
-//////////////////////////////////////////////////////////////////////
-///////////////// CONTAINS FUNCTIONS TO BE IMPLEMENTED ///////////////
-//////////////////////////////////////////////////////////////////////
-
 public class Volume {
-	//Do NOT modify these attributes
+    // Do NOT modify these attributes
     private int dimX, dimY, dimZ;
     private short[] data;
     private int[] histogram;
@@ -48,8 +44,7 @@ public class Volume {
     }
 
     //Do NOT modify this function
-    // This function returns the trilinear interpolated value of the position given by position coord. 
-    
+    // This function returns the trilinear interpolated value of the position given by position coord.
     public float getVoxelLinearInterpolate(double[] coord) {
         if (coord[0] < 0 || coord[0] > (dimX - 2) || coord[1] < 0 || coord[1] > (dimY - 2)
                 || coord[2] < 0 || coord[2] > (dimZ - 2)) {
@@ -92,7 +87,7 @@ public class Volume {
         // Case 1: 0 ≤ |𝑥| < 1
         if (absXMaxOneElseTwo)
             return (float) (((a + 2) * Math.pow(abs, 3)) - ((a + 3) * Math.pow(abs, 2)) + 1);
-        
+
         // Case 2: 1 ≤ |x| < 2
         return (float) ((a * Math.pow(abs, 3)) - (5 * a * Math.pow(abs, 2)) + (8 * a * abs) - (4 * a));
         // Case 3: Impossible due to assumption that distance between neighbouring voxels is 1.
@@ -154,7 +149,7 @@ public class Volume {
                 getVoxel(x, y, z),
                 getVoxel(x + 1, y, z),
                 getVoxel(x + 2, y, z),
-                (float)(coord[0] - x)
+                (float) (coord[0] - x)
         );
         float t2 = cubicinterpolate(
                 getVoxel(x - 1, y + 1, z),
@@ -203,10 +198,6 @@ public class Volume {
 
         return result;
     }
-
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////
 
     //Do NOT modify this function
     public Volume(int xd, int yd, int zd) {
