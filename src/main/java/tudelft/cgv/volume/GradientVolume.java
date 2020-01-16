@@ -67,38 +67,48 @@ public class GradientVolume {
 // This function should return linearly interpolated gradient for position coord[]
 // right now it returns the nearest neighbour        
 
+     // This function returns the trilinear interpolated value of the position given by  position coord based on the value of the gradients around it.  
     public VoxelGradient getGradient(double[] coord) {
         // to be implemented
         if (coord[0] < 0 || coord[0] > (dimX - 2) || coord[1] < 0 || coord[1] > (dimY - 2)
                 || coord[2] < 0 || coord[2] > (dimZ - 2)) {
             return zero;
         }
-
-        int x = (int) Math.floor(coord[0]);
+        
+        //Find the value for x,y,z coordinates just before our position for which we need to interpolate.
+        
+        int x = (int) Math.floor(coord[0]); 
         int y = (int) Math.floor(coord[1]);
         int z = (int) Math.floor(coord[2]);
-
+        
+        //Find the factor by which we need to interpolate by using the values calculated above.
+        
         float fac_x = (float) coord[0] - x;
         float fac_y = (float) coord[1] - y;
         float fac_z = (float) coord[2] - z;
-
-        VoxelGradient t0 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t1 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t2 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t3 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t4 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t5 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t6 = new VoxelGradient(0, 0, 0);
-
-        interpolate(getGradient(x, y, z), getGradient(x + 1, y, z), fac_x, t0);
-        interpolate(getGradient(x, y + 1, z), getGradient(x + 1, y + 1, z), fac_x, t1);
-        interpolate(getGradient(x, y, z + 1), getGradient(x + 1, y, z + 1), fac_x, t2);
-        interpolate(getGradient(x, y + 1, z + 1), getGradient(x + 1, y + 1, z + 1), fac_x, t3);
-        interpolate(t0, t1, fac_y, t4);
-        interpolate(t2, t3, fac_y, t5);
-        interpolate(t4, t5, fac_z, t6);
-
-        return t6;
+        
+       //Need to initialise VoxelGradient objects to store resulting interpolations. 
+       VoxelGradient t0 = new VoxelGradient(0,0,0);
+       VoxelGradient t1 = new VoxelGradient(0,0,0);
+       VoxelGradient t2 = new VoxelGradient(0,0,0);
+       VoxelGradient t3 = new VoxelGradient(0,0,0);
+       VoxelGradient t4 = new VoxelGradient(0,0,0);
+       VoxelGradient t5 = new VoxelGradient(0,0,0);
+       VoxelGradient t6 = new VoxelGradient(0,0,0);
+      
+       // Need to interpolate first in x direction, then y and finally z to get the trilinear interpolation as done in the Volume.java file.
+       interpolate(getGradient(x, y, z), getGradient(x+1, y, z), fac_x,t0);
+       interpolate(getGradient(x, y+1, z), getGradient(x+1, y+1, z),fac_x,t1);
+       interpolate(getGradient(x, y, z+1), getGradient(x+1, y, z+1), fac_x,t2);
+       interpolate(getGradient(x, y+1, z+1), getGradient(x+1, y+1, z+1), fac_x,t3);
+       interpolate(t0, t1, fac_y,t4);
+       interpolate(t2, t3, fac_y,t5);
+       interpolate(t4, t5, fac_z,t6);
+        
+       //returning the final interpolated value.
+       return t6; 
+        
+      
     }
 
     //Do NOT modify this function

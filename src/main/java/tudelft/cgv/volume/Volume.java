@@ -19,7 +19,7 @@ import java.io.IOException;
 //////////////////////////////////////////////////////////////////////
 
 public class Volume {
-    //Do NOT modify these attributes
+	//Do NOT modify these attributes
     private int dimX, dimY, dimZ;
     private short[] data;
     private int[] histogram;
@@ -48,7 +48,8 @@ public class Volume {
     }
 
     //Do NOT modify this function
-    // This function returns the trilinear interpolated value of the position given by  position coord.
+    // This function returns the trilinear interpolated value of the position given by position coord. 
+    
     public float getVoxelLinearInterpolate(double[] coord) {
         if (coord[0] < 0 || coord[0] > (dimX - 2) || coord[1] < 0 || coord[1] > (dimY - 2)
                 || coord[2] < 0 || coord[2] > (dimZ - 2)) {
@@ -110,8 +111,10 @@ public class Volume {
      * @return interpolation of point based on four reference points.
      */
     public float cubicinterpolate(float g0, float g1, float g2, float g3, float factor) {
+
         float result = 0.0f;
 
+        // interpolation takes into account 4 voxels in each direction
         result += g0 * weight(1 + factor, false);
         result += g1 * weight(factor, true);
         result += g2 * weight(1 - factor, true);
@@ -151,7 +154,7 @@ public class Volume {
                 getVoxel(x, y, z),
                 getVoxel(x + 1, y, z),
                 getVoxel(x + 2, y, z),
-                (float) (coord[0] - x)
+                (float)(coord[0] - x)
         );
         float t2 = cubicinterpolate(
                 getVoxel(x - 1, y + 1, z),
