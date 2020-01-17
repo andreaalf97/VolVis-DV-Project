@@ -8,13 +8,12 @@ package tudelft.cgv.volume;
  * It stores and provides methods to compute and retrieve gradient vector
  * In math, gradient vectors are vectors that point to the greatest increase of a function
  *
- * @author michel and modified by Anna Vilanova
- * Edit by Andrea Alfieri, Reinier Koops & Aditya Kunar
+ * @author Michel Westenberg
+ * @author Anna Vilanova
+ * @author Andrea Alfieri
+ * @author Reinier Koops
+ * @author Aditya Kunar
  */
-
-//////////////////////////////////////////////////////////////////////
-///////////////// CONTAINS FUNCTIONS TO BE IMPLEMENTED ///////////////
-//////////////////////////////////////////////////////////////////////
 public class GradientVolume {
     //Do NOT modify this attributes
     private int dimX, dimY, dimZ;
@@ -47,26 +46,29 @@ public class GradientVolume {
         maxmag = calculateMaxGradientMagnitude();
     }
 
-    //////////////////////////////////////////////////////////////////////
-    ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    //This function linearly interpolates gradient vector g0 and g1 given the factor (t)
-    //the result is given at result. You can use it to tri-linearly interpolate the gradient
+    /**
+     * Function that linearly interpolates gradient vector g0 and g1 given the factor
+     * (t). Used to tri-linearly interpolate the gradient
+     *
+     * @param g0     gradient vector
+     * @param g1     gradient vector
+     * @param factor ratio of importance
+     * @param result the interpolation based on the two gradients
+     */
     public void interpolate(VoxelGradient g0, VoxelGradient g1, float factor, VoxelGradient result) {
-        // to be implemented
         result.x = g0.x * (1 - factor) + g1.x * factor;
         result.y = g0.y * (1 - factor) + g1.y * factor;
         result.z = g0.z * (1 - factor) + g1.z * factor;
         result.mag = (float) Math.sqrt(result.x * result.x + result.y * result.y + result.z * result.z);
     }
 
-    //////////////////////////////////////////////////////////////////////
-    ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    // This function should return linearly interpolated gradient for position coord[]
-    // right now it returns the nearest neighbour.
-    // This function returns the trilinear interpolated value of the position given by
-    // position coord based on the value of the gradients around it.
+    /**
+     * Function that returns tri-linearly interpolated value of the position given by
+     * position coord, based on the value of the gradients around it.
+     *
+     * @param coord the coordinate (x, y, z)
+     * @return return tri-linearly interpolated value of the position
+     */
     public VoxelGradient getGradient(double[] coord) {
         // to be implemented
         if (coord[0] < 0 || coord[0] > (dimX - 2) || coord[1] < 0 || coord[1] > (dimY - 2)
@@ -139,9 +141,6 @@ public class GradientVolume {
     public double getMaxGradientMagnitude() {
         return this.maxmag;
     }
-    //////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////
 
     //Do NOT modify this function
     public GradientVolume(Volume vol) {

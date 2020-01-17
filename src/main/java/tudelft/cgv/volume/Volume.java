@@ -10,10 +10,12 @@ import java.io.IOException;
 /**
  * This class stores the volume and contains functions to retrieve values of the volume.
  *
- * @author michel modified by Anna
- * Edit by Andrea Alfieri, Reinier Koops & Aditya Kunar
+ * @author Michel Westenberg
+ * @author Anna Vilanova
+ * @author Andrea Alfieri
+ * @author Reinier Koops
+ * @author Aditya Kunar
  */
-
 public class Volume {
     // Do NOT modify these attributes
     private int dimX, dimY, dimZ;
