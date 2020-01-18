@@ -17,6 +17,7 @@ import tudelft.cgv.volume.Volume;
 import tudelft.cgv.volume.VoxelGradient;
 
 import java.awt.Color;
+import java.util.Arrays;
 
 
 /**
@@ -222,7 +223,6 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     //It returns the color assigned to a ray/pixel given it's starting point (entryPoint) and the direction of the ray(rayVector).
     // exitPoint is the last point.
     //ray must be sampled with a distance defined by the sampleStep
-   
    public int traceRayIso(double[] entryPoint, double[] exitPoint, double[] rayVector, double sampleStep) {
        
        
@@ -253,14 +253,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         do {
             //Get the interpolated value for the current position in the ray.
             float value = volume.getVoxelLinearInterpolate(currentPos);
-            //If we hit the isoValue then we break, everything from this point on is opaque. 
-            if (value == getIsoValue()) {
-                alpha = 1.0;
-                break;
-            }
-            //If we want to be more precise, we use a binary search within two sample steps to get a more accurate position for our isoValue.
-            // If the value for our current position is greater than isoValue we are looking for, the actual position must be inbetween the current position and the previous position. 
-            else if (value > getIsoValue() && currentPos!=entryPoint) {
+            //If we hit a value greater than the isoValue then we break, everything from this point on is opaque. 
+            if (value > getIsoValue()) {
+                // We get the more accurate position in our ray for the iso_value.
                 currentPos = bisection_accuracy(currentPos, increments, iso_value);
                 alpha = 1.0;
                 break;
@@ -272,6 +267,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             nrSamples--;
         } while (nrSamples > 0);
         
+       // System.out.println(Arrays.toString(currentPos));
         //initialise the color by assigning it the isoColor values.
         int color;
         
@@ -293,15 +289,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
         return color;
     }
-   
-    //////////////////////////////////////////////////////////////////////
-    ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
-    ////////////////////////////////////////////////////////////////////// 
-    
-    // Given the current sample position, increment vector of the sample (vector from previous sample to current sample) and sample Step. 
-   // Previous sample value and current sample value, isovalue value
-    // The function should search for a position where the iso_value passes that it is more precise.
-    public double[]  bisection_accuracy (double[] currentPos, double[] increments, float iso_value) {
+
+ public double[]  bisection_accuracy (double[] currentPos, double[] increments, float iso_value) {
 
         // to be implemented
         //Initialise variables for whether we found the value(v_f), the mid point between two sampled points in the ray and the value associated with it.
@@ -329,11 +318,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 currentPos = mid_point;
                 v_f = true;
             } 
-            // Shucks, we didn't find it, but it looks like we might find it in the region between the prev position and the current mid_point.
+            // If iso_value is less than the mid point, we might find it in the region below the current midpoint so we assign the current position as the new midpoint.
             else if (iso_value < mid_val) {
                 currentPos = mid_point;
             }
-              // Shucks, we didn't find it, but it looks like we might find it in the region between the current position and the current mid_point.
+              // If iso_value is greater than the mid point value we might find it in the region above the current mid point, so we assign the previous postion as the new midpoint.
             else if (mid_val < iso_value) {
                 prevPos = mid_point;
             }
@@ -343,6 +332,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         return currentPos;
     }
     
+
     //////////////////////////////////////////////////////////////////////
     ///////////////// FUNCTION TO BE IMPLEMENTED /////////////////////////
     ////////////////////////////////////////////////////////////////////// 
@@ -375,14 +365,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         
         if (compositingMode) {
             // 1D transfer function
-            TFColor colorAux = rayCompositing(entryPoint,exitPoint, lightVector, rayVector, sampleStep);
-
+            // Computes the ray compositing and returns the final accumalated color.
+            TFColor colorAux;
+            colorAux = rayCompositing(entryPoint,exitPoint,lightVector,rayVector,sampleStep);
+            //assign the local colors to the global colors.
             voxel_color.r = colorAux.r;
             voxel_color.g = colorAux.g;
             voxel_color.b = colorAux.b;
 
             //If any of the colors are positive, assign the opacity as 1.
-            if (colorAux.r > 0 || colorAux.g > 0 || colorAux.b > 0)
+            if (colorAux.r > 0 && colorAux.g > 0 && colorAux.b > 0)
                 alph = 1;
 
         }    
@@ -431,12 +423,12 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         int value = (int) volume.getVoxelLinearInterpolate(currentPos);
 
         //Get the color for the value computed above.
-        TFColor prevColor = this.tFunc.getColor(value);
+        TFColor prevColor = tFunc.getColor(value);
         
         //We use the phong shaded color if shading is enabled.
         if (shadingMode){
         // If we dont have a value for red or green or blue we dont need to do the phong shading.
-        if(prevColor.r > 0 || prevColor.g > 0 || prevColor.b > 0){
+        if(prevColor.r > 0 && prevColor.g > 0 && prevColor.b > 0){
         
             prevColor = computePhongShading(prevColor, gradients.getGradient(currentPos), lightVector, rayVector);
         
@@ -455,11 +447,11 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             }
             //Get the value and the color based on the value for this position, if phong shading is enabled, then get the shaded color.
             value = (int) volume.getVoxelLinearInterpolate(currentPos);
-            TFColor currColor = this.tFunc.getColor(value);
+            TFColor currColor = tFunc.getColor(value);
             
             if (shadingMode){
             // If we dont have a value for red or green or blue we dont need to do the phong shading.
-            if(currColor.r > 0 || currColor.g > 0 || currColor.b > 0){
+            if(currColor.r > 0 && currColor.g > 0 && currColor.b > 0){
 
             currColor = computePhongShading(currColor, gradients.getGradient(currentPos), lightVector, rayVector);
    
@@ -516,7 +508,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             //Compute the color based on 2d Transfer function. 
             colorAux = tFunc2D.color;
             //Compute the opacity
-            alpha = this.computeOpacity2DTF(tFunc2D.baseIntensity, tFunc2D.radius,value, gradient.mag);
+            alpha = computeOpacity2DTF(tFunc2D.baseIntensity, tFunc2D.radius,value, gradient.mag);
             // If shading is enabled, we compute the phong shaded color.
             if (shadingMode) {
                 if (alpha > 0.0f && colorAux.r > 0.0f && colorAux.g > 0.0f && colorAux.b > 0.0f) {
@@ -632,7 +624,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         color.g = ambient.g + diffuse.g + specular.g;
         color.b = ambient.b + diffuse.b + specular.b;
         
-        // Limit the color range between 0 and 1. 
+        // Limits the color range between 0 and 1. 
         if (color.r < 0) {
 
             color.r = 0;
@@ -774,53 +766,26 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 // Compute the opacity based on the value of the pixel and the values of the
 // triangle widget tFunc2D contains the values of the baseintensity and radius
 // tFunc2D.baseIntensity, tFunc2D.radius they are in image intensity units
- public double computeOpacity2DTF(short intensity,double radius, double voxelValue, double gradMagnitude) {
 
-    //init opacity with 0
-
-    double opacity = 0.0;
-
-    //angle of the widget
-
-    double angle = Math.atan(radius/gradients.getMaxGradientMagnitude());
-  
-    //angle of current voxel with respect to base intensity center
-
-    double voxelRad = Math.abs(voxelValue-intensity);
-
-    double voxelGradMag = gradMagnitude;
-
-    double voxelAngle = Math.atan(voxelRad/voxelGradMag);
-
-    //if the voxel is inside the widget, give it an opacity
-
-    if(voxelAngle < angle){
-
-        //the factor between the angles is used as a ramp
-
-        opacity = (1 - (voxelAngle/angle))*tFunc2D.color.a;  
-        
+    
+public double computeOpacity2DTF(double material_value, double material_r,
+        double voxelValue, double gradMagnitude) {
+    
+   double opacity = 0.0;
+   // Here we check if a point in the 2d space of our transfer function is within the two lines as prescribed by the triangle.
+   double d1 = (voxelValue-material_value)*(gradients.getMaxGradientMagnitude()) - (gradMagnitude)*(material_r);
+   double d2 = (voxelValue-material_value)*(gradients.getMaxGradientMagnitude()) - (gradMagnitude)*(-material_r);
+  // If it is so that the point lies in the trianlge, an opacity is given to that point.
+   if(d1 < 0 && d2 > 0){
+       //Here we do a linear interpolation based on the distance from the voxel's intensity value to the material_value and normalise.
+        double factor = (voxelValue - material_value)/material_r;
+        opacity = tFunc2D.color.a*(1-factor) + 0*factor;
     }
 
     return opacity;
+}
 
-} 
 
-/*
-    public double computeOpacity2DTF(double material_value, double material_r, double voxelValue, double gradMagnitude) {
-
-    double opacity = 0.0;
-    if (gradMagnitude == 0.0 && voxelValue == material_value) {
-        opacity = 1.0;
-    } else if (gradMagnitude > 0.0 && voxelValue - material_r * gradMagnitude <= material_value
-            && material_value <= voxelValue + material_r * gradMagnitude) {
-        opacity = 1.0 - (1/material_r)*Math.abs((material_value - voxelValue)/gradMagnitude);
-    }
-
-    return opacity;
-} 
-
-*/
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
@@ -1274,6 +1239,10 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         for (int i=0; i < listeners.size(); i++) {
             listeners.get(i).changed();
         }
+    }
+
+    private void print(double[] bisection_accuracy) {
+        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
     
 
