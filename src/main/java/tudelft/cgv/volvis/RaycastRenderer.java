@@ -228,7 +228,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
        
        //In case we are moving the image, we increase sampling steps to reduce the number of points being sampled, reducing computation when in interactive mode.
        if (interactiveMode == true){
-            sampleStep = sampleStep * 3;
+            //sampleStep = sampleStep * 3;
         }
         //We define the light vector as directed toward the view point (which is the source of the light)
         // another light vector would be possible
@@ -237,7 +237,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 
         //compute the increment 
         double[] increments = new double[3];
-        VectorMath.setVector(increments, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
+        VectorMath.setVector(increments, rayVector[0] * sampleStep * 2, rayVector[1] * sampleStep * 2, rayVector[2] * sampleStep * 2);
         
         // Compute the number of times we need to sample
         int nrSamples = 1 + (int) Math.floor( VectorMath.distance(entryPoint, exitPoint)/ sampleStep);
@@ -245,27 +245,34 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         //the current position is initialized as the entry point
         double[] currentPos = new double[3];
         VectorMath.setVector(currentPos, entryPoint[0], entryPoint[1], entryPoint[2]);
-       
-        // initialise the alpha.
-        double alpha = 0.0;
 
-        //Same loop as in traceRayMIP to iterate over the ray.
-        do {
-            //Get the interpolated value for the current position in the ray.
-            float value = volume.getVoxelLinearInterpolate(currentPos);
-            //If we hit a value greater than the isoValue then we break, everything from this point on is opaque. 
-            if (value > getIsoValue()) {
-                // We get the more accurate position in our ray for the iso_value.
-                currentPos = bisection_accuracy(currentPos, increments, iso_value);
-                alpha = 1.0;
-                break;
-            }
-            //Updating our current position in the ray.
-            for (int i = 0; i < 3; i++) {
-                currentPos[i] += increments[i];
-            }
-            nrSamples--;
-        } while (nrSamples > 0);
+       // initialise the alpha.
+       double alpha = 0.0;
+
+       //Same loop as in traceRayMIP to iterate over the ray.
+       do {
+           //Get the interpolated value for the current position in the ray.
+           float value = volume.getVoxelLinearInterpolate(currentPos);
+           //If we hit a value greater than the isoValue then we break, everything from this point on is opaque.
+           if (value > getIsoValue()) {
+               // We get the more accurate position in our ray for the iso_value.
+
+               double[] leftPos = new double[3];
+               for(int i = 0; i < 3; i++)
+                   leftPos[i] = currentPos[i] - increments[i];
+
+               float leftValue = volume.getVoxelLinearInterpolate(leftPos);
+               if(leftValue < iso_value)
+                   currentPos = bisection_accuracy(leftPos, currentPos, iso_value, 0);
+               alpha = 1.0;
+               break;
+           }
+           //Updating our current position in the ray.
+           for (int i = 0; i < 3; i++) {
+               currentPos[i] += increments[i];
+           }
+           nrSamples--;
+       } while (nrSamples > 0);
         
        // System.out.println(Arrays.toString(currentPos));
         //initialise the color by assigning it the isoColor values.
@@ -289,47 +296,32 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
         return color;
     }
+    // Given the current sample position, increment vector of the sample (vector from previous sample to current sample) and sample Step.
+    // Previous sample value and current sample value, isovalue value
+    // The function should search for a position where the iso_value passes that it is more precise.
+    public double[] bisection_accuracy (double[] leftPos, double[] rightPos, float iso_value, int index){
 
- public double[]  bisection_accuracy (double[] currentPos, double[] increments, float iso_value) {
+        if(index > 20)
+            return rightPos;
 
-        // to be implemented
-        //Initialise variables for whether we found the value(v_f), the mid point between two sampled points in the ray and the value associated with it.
-        float mid_val=0;
-        boolean v_f = false;
-        double[] prevPos = new double[3];
-        double[] mid_point = new double[3];
-        //Get the previous position.
-        for(int i=0;i<3 ;i++)
-        {
-           prevPos[i]= currentPos[i] - increments[i];
-        };
-        // Doing a binary search to find the accurate position within a threshold of 0.001. Need this condition because it's possible we will never find the actual position.   
-        // Running the loop as long as we dont find the value or the threshold is greater than 0.001.
-        while (v_f==false && (mid_val - iso_value)>0.001) {
-            //Compute the mid point between previous and current position.
-            for(int i=0; i< 3;i++) {
-                mid_point[i]=(currentPos[i] + prevPos[i])/ 2;
-                          };
-            //get the value through interpolation for the mid point.              
-            mid_val = volume.getVoxelLinearInterpolate(mid_point);
-           
-            //In the case we found it, great, lets stop and assign this mid point as the more accurate position for our iso value.
-            if (mid_val == iso_value) {
-                currentPos = mid_point;
-                v_f = true;
-            } 
-            // If iso_value is less than the mid point, we might find it in the region below the current midpoint so we assign the current position as the new midpoint.
-            else if (iso_value < mid_val) {
-                currentPos = mid_point;
-            }
-              // If iso_value is greater than the mid point value we might find it in the region above the current mid point, so we assign the previous postion as the new midpoint.
-            else if (mid_val < iso_value) {
-                prevPos = mid_point;
-            }
-   
-        }  
-       //returning the more accurate position. 
-        return currentPos;
+        index++;
+
+        //Finds the position in the middle between the left and the right
+        double[] middlePos = new double[3];
+        for(int i = 0; i < 3; i++)
+            middlePos[i] = (rightPos[i] + leftPos[i]) / 2;
+
+        //Interpolates to find the value of the middle point and return the middle position if the value is close enough to the iso value
+        float middleValue = volume.getVoxelLinearInterpolate(middlePos);
+        if( Math.abs(middleValue - iso_value) <= 0.1)
+            return middlePos;
+
+        if(middleValue > iso_value){
+            return bisection_accuracy(leftPos, middlePos, iso_value, index);
+        }
+        else{
+            return bisection_accuracy(middlePos, rightPos, iso_value, index);
+        }
     }
     
 
