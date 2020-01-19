@@ -212,7 +212,7 @@ public class Volume {
 
         float result = cubicinterpolate(t0, t1, t2, t3, (float)Math.abs(coord[2] - z));
 
-        //Clamping the negative values
+        //Clamping the values
         if(result < 0)
             return 0;
         if(result > 255)

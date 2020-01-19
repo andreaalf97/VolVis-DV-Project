@@ -346,11 +346,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         }
         
         //Initialization of the colors as floating point values
-        double r, g, b;
-        r = g = b = 0.0;
-        double alpha = 0.0;
         double alph = 0;
-        TFColor voxel_color = new TFColor();
+        TFColor voxel_color = new TFColor(0, 0, 0, 0);
         
         
         // To be Implemented this function right now just gives back a constant color depending on the mode
@@ -373,8 +370,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         if (tf2dMode) {
              // 2D transfer function 
           // Computes the ray compositing based on the 2d transfer function and returns the final accumalated color.
-           TFColor colorAux;
-           colorAux = rayCompositing2D(entryPoint,exitPoint,lightVector, rayVector,sampleStep);
+           TFColor colorAux = rayCompositing2D(entryPoint,exitPoint,lightVector, rayVector,sampleStep);
            //assign the local colors to the global colors.
            voxel_color.r = colorAux.r;
            voxel_color.g = colorAux.g;
@@ -385,13 +381,9 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                alph = colorAux.a;
             }
              }
-        
-        r = voxel_color.r;
-        g = voxel_color.g;
-        b = voxel_color.b;
-        alpha = alph;
+
         //computes the color
-        int color = computeImageColor(r,g,b,alpha);
+        int color = computeImageColor(voxel_color.r, voxel_color.g, voxel_color.b, alph);
         return color;
     }
 
