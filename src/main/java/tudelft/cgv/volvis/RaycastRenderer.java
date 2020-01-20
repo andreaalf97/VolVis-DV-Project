@@ -213,7 +213,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         double[] lightVector = new double[3];
         VectorMath.setVector(lightVector, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
 
-        //compute the increment 
+        //compute the increment
         double[] increments = new double[3];
         VectorMath.setVector(increments, rayVector[0] * sampleStep, rayVector[1] * sampleStep, rayVector[2] * sampleStep);
 
@@ -259,18 +259,16 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         g = isoColor.g;
         b = isoColor.b;
 
-        // If we enable shading, we compute the phong shading and return that as the color else we return the unshaded color. 
+        // If we enable shading, we compute the phong shading and return that as the color else we return the unshaded color.
         if (shadingMode) {
             TFColor normal = new TFColor(r, g, b, alpha);
             VoxelGradient gradient = gradients.getGradient(currentPos);
             // Pass the gradient and the normal color to the function to get the shaded color.
             TFColor phong_color = computePhongShading(normal, gradient, lightVector, rayVector);
             // using the shaded color to compute the final image color.
-            color = computeImageColor(phong_color.r, phong_color.g, phong_color.b, phong_color.a);
-        } else {
-            color = computeImageColor(r, g, b, alpha);
-        }
-        return color;
+            return computeImageColor(phong_color.r, phong_color.g, phong_color.b, phong_color.a);
+        } else return computeImageColor(r, g, b, alpha);
+
     }
 
     /**
@@ -497,7 +495,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             // Get the gradient for the current position.
             VoxelGradient gradient = gradients.getGradient(currentPos);
 
-            // Compute the color based on 2d Transfer function. 
+            // Compute the color based on 2d Transfer function.
             colorAux = tFunc2D.color;
 
             // Compute the opacity
@@ -520,7 +518,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
             // We also take account of the opacity in this case.
             accColor.a += (1.0 - accColor.a) * alpha;
 
-            // Update the current position 
+            // Update the current position
             for (int j = 0; j < 3; j++) currentPos[j] += increments[j];
         }
 

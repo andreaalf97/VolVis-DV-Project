@@ -70,7 +70,6 @@ public class GradientVolume {
      * @return return tri-linearly interpolated value of the position
      */
     public VoxelGradient getGradient(double[] coord) {
-        // to be implemented
         if (coord[0] < 0 || coord[0] > (dimX - 2) || coord[1] < 0 || coord[1] > (dimY - 2)
                 || coord[2] < 0 || coord[2] > (dimZ - 2)) {
             return zero;
