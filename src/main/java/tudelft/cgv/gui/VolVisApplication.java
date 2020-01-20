@@ -22,7 +22,7 @@ import tudelft.cgv.volvis.Visualization;
  * 
  * Basic initial application
  * 
- * NO IMPLEMENTATION NEEDED FOR THE BASIC ASSIGNMENTME 
+ * NO IMPLEMENTATION NEEDED FOR THE BASIC ASSIGNMENTME
  * YOu need to modify it if you want to change the interface
  */
 
@@ -31,14 +31,14 @@ public class VolVisApplication extends javax.swing.JFrame {
     Visualization visualization;
     Volume volume;
     RaycastRenderer raycastRenderer;
-    
+
     /**
      * Creates new form VolVisApplication
      */
     public VolVisApplication() {
         initComponents();
         this.setTitle("2IMV20 Volume Visualization");
-        
+
         //GLCanvas glPanel = new GLCanvas();
         GLJPanel glPanel = new GLJPanel();
         renderPanel.setLayout(new BorderLayout());
@@ -46,7 +46,7 @@ public class VolVisApplication extends javax.swing.JFrame {
         // Create a new visualization for the OpenGL panel
         visualization = new Visualization(glPanel);
         glPanel.addGLEventListener(visualization);
-    
+
         raycastRenderer = new RaycastRenderer();
         visualization.addRenderer(raycastRenderer);
         raycastRenderer.addTFChangeListener(visualization);
@@ -143,7 +143,8 @@ public class VolVisApplication extends javax.swing.JFrame {
     private void loadButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadButtonActionPerformed
         // TODO add your handling code here:
         String currentDir = System.getProperty("user.dir");
-        String dataDir = currentDir + "\\..\\set1_data\\";
+        // Faster selecting of files.
+        String dataDir = currentDir + "/datasets";
         JFileChooser fc = new JFileChooser(dataDir);
         fc.setFileFilter(new FileFilter() {
 
