@@ -85,27 +85,29 @@ public class GradientVolume {
         float fac_y = (float) coord[1] - y;
         float fac_z = (float) coord[2] - z;
 
-        //Need to initialise VoxelGradient objects to store resulting interpolations.
-        VoxelGradient t0 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t1 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t2 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t3 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t4 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t5 = new VoxelGradient(0, 0, 0);
-        VoxelGradient t6 = new VoxelGradient(0, 0, 0);
+        //This array contains all the temporary values and the final value to be returned for the gradients
+        VoxelGradient[] voxels = new VoxelGradient[7];
+        for(int i = 0; i < 7; i++)
+            voxels[i] = new VoxelGradient();
 
         // Need to interpolate first in x direction, then y and finally z to get
         // the tri-linear interpolation as done in the Volume.java file.
-        interpolate(getGradient(x, y, z), getGradient(x + 1, y, z), fac_x, t0);
-        interpolate(getGradient(x, y + 1, z), getGradient(x + 1, y + 1, z), fac_x, t1);
-        interpolate(getGradient(x, y, z + 1), getGradient(x + 1, y, z + 1), fac_x, t2);
-        interpolate(getGradient(x, y + 1, z + 1), getGradient(x + 1, y + 1, z + 1), fac_x, t3);
-        interpolate(t0, t1, fac_y, t4);
-        interpolate(t2, t3, fac_y, t5);
-        interpolate(t4, t5, fac_z, t6);
+
+        //Interpolate in 3 Dimensions
+        interpolate(getGradient(x, y, z), getGradient(x + 1, y, z), fac_x, voxels[0]);
+        interpolate(getGradient(x, y + 1, z), getGradient(x + 1, y + 1, z), fac_x, voxels[1]);
+        interpolate(getGradient(x, y, z + 1), getGradient(x + 1, y, z + 1), fac_x, voxels[2]);
+        interpolate(getGradient(x, y + 1, z + 1), getGradient(x + 1, y + 1, z + 1), fac_x, voxels[3]);
+
+        //Interpolate in 2 dimensions
+        interpolate(voxels[0], voxels[1], fac_y, voxels[4]);
+        interpolate(voxels[2], voxels[3], fac_y, voxels[5]);
+
+        //Interpolate on the last dimension
+        interpolate(voxels[4], voxels[5], fac_z, voxels[6]);
 
         //returning the final interpolated value.
-        return t6;
+        return voxels[6];
     }
 
     //Do NOT modify this function
