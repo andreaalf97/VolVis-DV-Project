@@ -48,6 +48,25 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
     private float res_factor = 1.0f;
     private float max_res_factor = 0.25f;
     private TFColor isoColor;
+    
+    private boolean toneShading = false;
+    private boolean boundaryEnhancement = false;
+    private boolean silhouette = false;
+    
+    public void setToneShading(boolean toneShading){
+        this.toneShading = toneShading;
+        changed();
+    }
+    
+    public void setBoundaryEnhancement(boolean boundaryEnhancement){
+        this.boundaryEnhancement = boundaryEnhancement;
+        changed();
+    }
+    
+    public void setSilhouette (boolean silhouette){
+        this.silhouette = silhouette;
+        changed();
+    }
 
     /**
      * Function that updates the "image" attribute (result of renderings)
@@ -343,7 +362,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
 
         // 2D transfer function
-        // Computes the ray compositing based on the 2d transfer function and returns the final accumalated color.
+        // Computes the ray compositing based on the 1d & 2d transfer functions as well as adds phong shading and returns the final accumalated color.
         TFColor colorAux;
         colorAux = rayCompositing(entryPoint,exitPoint,lightVector, rayVector,sampleStep);
         //assign the local colors to the global colors.
@@ -395,7 +414,8 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
         // Initialize the color variables.
         TFColor accumulatedColor = new TFColor(0, 0, 0.0, 0.0);
         TFColor currentColor = new TFColor(0.0, 0.0, 0.0, 0.0);
-
+        
+        TFColor currColor = new TFColor(0.0,0.0,0.0,0.0);
         //Initialize the current opacity
         double currentOpacity = 0.0;
 
@@ -409,31 +429,162 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
 
             // Get the gradient for the current position.
             VoxelGradient gradient = gradients.getGradient(currentPosition);
+            
+             // Normalise the ray vector.
+            double rayVectorNorm = VectorMath.length(rayVector);
+            double[] viewVector = new double[3];
+            for (int n = 0; n < 3; n++)
+                viewVector[n] = rayVector[n] / (rayVectorNorm + .000000001);
+            
+            //normalising the light vector.
+            double lightVectorNorm = VectorMath.length(lightVector);
+            
+            double[] lCvec = new double[3];
+            
+            for (int s = 0; s < 3; s++)
+                lCvec[s] = lightVector[s] / (lightVectorNorm + .000000001);
 
+            //normalising the normal vector.
+            double[] normalVector = new double[3];
+            normalVector[0] = gradient.x / (gradient.mag + .000000001);
+            normalVector[1] = gradient.y / (gradient.mag + .000000001);
+            normalVector[2] = gradient.z / (gradient.mag + .000000001);
+            
+            double gradNorm = VectorMath.length(normalVector);
+            
+         
             //The next 2 if cases are relative to which TF we are using
             if(compositingMode){
                 currentColor = tFunc.getColor(value);
+                currColor.r = currentColor.r;
+                currColor.g = currentColor.g;
+                currColor.b = currentColor.b;
+                //Here we do the tone shading to the colors.
+                if(toneShading){
+                    TFColor kblue = new TFColor(0.0, 0.0, 0.4,currentColor.a);
+                    TFColor kyellow = new TFColor(0.4, 0.4, 0.0,currentColor.a);
+
+                    TFColor kcool = new TFColor(0.0, 0.0, 0.0,currentColor.a);
+                    TFColor kwarm = new TFColor(0.0, 0.0, 0.0,currentColor.a);
+
+                    kcool.r = kblue.r + 0.2*currentColor.r;
+                    kcool.g = kblue.g + 0.2*currentColor.g;
+                    kcool.b = kblue.b + 0.2*currentColor.b;
+
+                    kwarm.r = kyellow.r + 0.6*currentColor.r;
+                    kwarm.g = kyellow.g + 0.6*currentColor.g;
+                    kwarm.b = kyellow.b + 0.6*currentColor.b;
+
+                    TFColor toneC = new TFColor(0.0, 0.0, 0.0,currentColor.a);
+
+                    double factor = (1+ (VectorMath.dotproduct(lCvec,normalVector)))/2;
+
+                    toneC.r = factor*kcool.r + (1-factor)*kwarm.r;
+                    toneC.g = factor*kcool.g + (1-factor)*kwarm.g;
+                    toneC.b = factor*kcool.b + (1-factor)*kwarm.b;
+                    currColor.r = toneC.r;
+                    currColor.g = toneC.g;
+                    currColor.b = toneC.b;
+                }
+                
                 currentOpacity = currentColor.a;
+                
+                if (!shadingMode)
+                {  //Boundary enhancement is done here by modifying the opacity..
+                    if(boundaryEnhancement){
+                        double boundaryEnhancedOp = currentOpacity *(0.7 + 10*(Math.pow((gradNorm),2)));
+                        currentOpacity = boundaryEnhancedOp;
+                    }
+                    
+                    //Sillhouette is enhanced here by modifying the opacity.
+                 if(silhouette) {
+                double inter = Math.abs(VectorMath.dotproduct(normalVector, (viewVector)));
+                double interP = Math.pow(inter,0.17);
+                double silOp=  currentOpacity*(0.82+36*(1-interP));
+                currentOpacity = silOp; 
+                }    
+                }
             }
             if(tf2dMode) {
                 currentColor = tFunc2D.color;
+                currColor.r = currentColor.r;
+                currColor.g = currentColor.g;
+                currColor.b = currentColor.b;
+                //Here we do the tone shading to the colors. 
+                if(toneShading){
+                    TFColor kblue = new TFColor(0.0, 0.0, 0.4,currentColor.a);
+                    TFColor kyellow = new TFColor(0.4, 0.4, 0.0,currentColor.a);
+
+                    TFColor kcool = new TFColor(0.0, 0.0, 0.0,currentColor.a);
+                    TFColor kwarm = new TFColor(0.0, 0.0, 0.0,currentColor.a);
+
+                    kcool.r = kblue.r + 0.2*currentColor.r;
+                    kcool.g = kblue.g + 0.2*currentColor.g;
+                    kcool.b = kblue.b + 0.2*currentColor.b;
+
+                    kwarm.r = kyellow.r + 0.6*currentColor.r;
+                    kwarm.g = kyellow.g + 0.6*currentColor.g;
+                    kwarm.b = kyellow.b + 0.6*currentColor.b;
+
+                    TFColor toneC = new TFColor(0.0, 0.0, 0.0,currentColor.a);
+
+                    double factor = (1+ (VectorMath.dotproduct(lCvec,normalVector)))/2;
+
+                    toneC.r = factor*kcool.r + (1-factor)*kwarm.r;
+                    toneC.g = factor*kcool.g + (1-factor)*kwarm.g;
+                    toneC.b = factor*kcool.b + (1-factor)*kwarm.b;
+                    currColor.r = toneC.r;
+                    currColor.g = toneC.g;
+                    currColor.b = toneC.b;
+                }
+                
                 currentOpacity = computeOpacity2DTF(tFunc2D.baseIntensity, tFunc2D.radius, value, gradient.mag);
+                //Boundary enhancement is done here by modifying the opacity..
+                if(boundaryEnhancement){
+                        double boundaryEnhancedOp = currentOpacity *(0.7 + 10*(Math.pow((gradNorm),2)));
+                        currentOpacity = boundaryEnhancedOp;
+                    }
+                    
+                    //Sillhouette is enhanced here by modifying the opacity.
+                    
+                if(silhouette) {
+                double inter = Math.abs(VectorMath.dotproduct(normalVector, (viewVector)));
+                double interP = Math.pow(inter,0.17);
+                double silOp=  currentOpacity*(0.82+36*(1-interP));
+                currentOpacity = silOp; 
+                }
             }
 
             // If shading is enabled, we compute the phong shaded color.
             if (shadingMode) {
-                if (currentOpacity > 0.0f && currentColor.r > 0.0f && currentColor.g > 0.0f && currentColor.b > 0.0f) {
-                    TFColor color = new TFColor(currentColor.r, currentColor.g, currentColor.b, currentOpacity);
+                if (currentOpacity > 0.0f && currColor.r > 0.0f && currColor.g > 0.0f && currColor.b > 0.0f) {
+                    TFColor color = new TFColor(currColor.r, currColor.g, currColor.b, currentOpacity);
                     currentColor = computePhongShading(color, gradient, lightVector, rayVector);
                     currentOpacity = currentColor.a;
+                    if(!tf2dMode){
+                //Boundary enhancement is done here by modifying the opacity..
+                    
+                    if(boundaryEnhancement){
+                        double boundaryEnhancedOp = currentOpacity *(0.7 + 10*(Math.pow((gradNorm),2)));
+                        currentOpacity = boundaryEnhancedOp;
+                    }
+                    //Sillhouette is enhanced here by modifying the opacity.
+                    
+                 if(silhouette) {
+                double inter = Math.abs(VectorMath.dotproduct(normalVector, (viewVector)));
+                double interP = Math.pow(inter,0.17);
+                double silOp=  currentOpacity*(0.82+36*(1-interP));
+                currentOpacity = silOp; 
+                }                    
+                }
                 }
             }
 
 
             // Calculate the accumulated color as we iterate through the ray based on front to back compositing.
-            accumulatedColor.r += (1.0 - accumulatedColor.a) * currentOpacity * currentColor.r;
-            accumulatedColor.g += (1.0 - accumulatedColor.a) * currentOpacity * currentColor.g;
-            accumulatedColor.b += (1.0 - accumulatedColor.a) * currentOpacity * currentColor.b;
+            accumulatedColor.r += (1.0 - accumulatedColor.a) * currentOpacity * currColor.r;
+            accumulatedColor.g += (1.0 - accumulatedColor.a) * currentOpacity * currColor.g;
+            accumulatedColor.b += (1.0 - accumulatedColor.a) * currentOpacity * currColor.b;
 
             // We also take account of the opacity in this case.
             accumulatedColor.a += (1.0 - accumulatedColor.a) * currentOpacity;
