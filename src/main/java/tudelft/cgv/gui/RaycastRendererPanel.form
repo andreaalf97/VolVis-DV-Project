@@ -37,10 +37,8 @@
                               <Component id="Resolution" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Component id="compositingButton" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="tf2dButton" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="mipButton" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Component id="slicerButton" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="shadingCheckbox" alignment="0" min="-2" max="-2" attributes="0"/>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="IsoSurface" min="-2" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
@@ -52,8 +50,20 @@
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="colorButton" min="-2" pref="75" max="-2" attributes="0"/>
                           </Group>
+                          <Group type="102" alignment="0" attributes="0">
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="tf2dButton" alignment="0" min="-2" max="-2" attributes="0"/>
+                                  <Component id="shadingCheckbox" alignment="0" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                              <EmptySpace min="-2" pref="90" max="-2" attributes="0"/>
+                              <Group type="103" groupAlignment="0" attributes="0">
+                                  <Component id="shadingCheckbox2" min="-2" max="-2" attributes="0"/>
+                                  <Component id="shadingCheckbox1" min="-2" max="-2" attributes="0"/>
+                                  <Component id="shadingCheckbox3" min="-2" max="-2" attributes="0"/>
+                              </Group>
+                          </Group>
                       </Group>
-                      <EmptySpace min="0" pref="117" max="32767" attributes="0"/>
+                      <EmptySpace min="0" pref="108" max="32767" attributes="0"/>
                   </Group>
               </Group>
           </Group>
@@ -84,9 +94,17 @@
               <EmptySpace max="-2" attributes="0"/>
               <Component id="compositingButton" min="-2" max="-2" attributes="0"/>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="tf2dButton" min="-2" max="-2" attributes="0"/>
-              <EmptySpace min="-2" pref="27" max="-2" attributes="0"/>
-              <Component id="shadingCheckbox" min="-2" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="tf2dButton" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="shadingCheckbox1" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
+              <EmptySpace type="unrelated" max="-2" attributes="0"/>
+              <Component id="shadingCheckbox2" min="-2" max="-2" attributes="0"/>
+              <EmptySpace min="-2" pref="1" max="-2" attributes="0"/>
+              <Group type="103" groupAlignment="3" attributes="0">
+                  <Component id="shadingCheckbox" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="shadingCheckbox3" alignment="3" min="-2" max="-2" attributes="0"/>
+              </Group>
               <EmptySpace min="-2" pref="18" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Component id="Resolution" min="-2" max="-2" attributes="0"/>
@@ -218,6 +236,30 @@
       <Properties>
         <Property name="text" type="java.lang.String" value="Color"/>
       </Properties>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="shadingCheckbox1">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Boundary Enhancement"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="shadingCheckbox1ActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="shadingCheckbox2">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Tone Shading"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="shadingCheckbox2ActionPerformed"/>
+      </Events>
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="shadingCheckbox3">
+      <Properties>
+        <Property name="text" type="java.lang.String" value="Silhuette Enhancement"/>
+      </Properties>
+      <Events>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="shadingCheckbox3ActionPerformed"/>
+      </Events>
     </Component>
   </SubComponents>
 </Form>
