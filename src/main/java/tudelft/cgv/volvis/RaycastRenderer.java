@@ -492,7 +492,7 @@ public class RaycastRenderer extends Renderer implements TFChangeListener {
                 if (!shadingMode)
                 {  //Boundary enhancement is done here by modifying the opacity..
                     if(boundaryEnhancement){
-                        double boundaryEnhancedOp = currentOpacity *(0.7 + 10*(Math.pow((gradNorm),2)));
+                        double boundaryEnhancedOp = currentOpacity *(0.69 + 1.1*(Math.pow((gradNorm),1.6)));
                         currentOpacity = boundaryEnhancedOp;
                     }
                     
